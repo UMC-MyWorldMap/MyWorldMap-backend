@@ -61,4 +61,13 @@ public class UserConverter {
                 .isPublic(true) // 고정값 설정
                 .build();
     }
+
+    public static UserResponseDto.UpdateResultDto toUpdateResultDto(User user){
+        return UserResponseDto.UpdateResultDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .gender(user.getGender())
+                .birth(user.getBirth())
+                .build();
+    }
 }

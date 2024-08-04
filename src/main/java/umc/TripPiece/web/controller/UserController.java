@@ -63,6 +63,19 @@ public class UserController {
         }
     }
 
+`   @PostMapping("/update")
+    @Operation(summary = "프로필 수정하기 API",
+            description = "프로필 수정하기")
+    public ApiResponse<UserResponseDto.UpdateResultDto> update(@RequestBody @Valid UserRequestDto.UpdateDto request) {
+        User user = userService.update(request);
+
+        if (user != null) {
+            return ApiResponse.onSuccess(UserConverter.toUpdateResultDto(user));
+        } else {
+            return ApiResponse.onFailure("400", "프로필 수정에 실패했습니다.", null);
+        }
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
