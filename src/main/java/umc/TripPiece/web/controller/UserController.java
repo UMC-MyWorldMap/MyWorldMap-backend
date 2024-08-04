@@ -63,7 +63,7 @@ public class UserController {
         }
     }
 
-`   @PostMapping("/update")
+   @PostMapping("/update")
     @Operation(summary = "프로필 수정하기 API",
             description = "프로필 수정하기")
     public ApiResponse<UserResponseDto.UpdateResultDto> update(@RequestBody @Valid UserRequestDto.UpdateDto request) {
