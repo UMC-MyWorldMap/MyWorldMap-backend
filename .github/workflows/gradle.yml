@@ -39,18 +39,11 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
-    - name: Copy secret
-      env:
-          OCCUPY_SECRET: ${{ secrets.OCCUPY_SECRET }}
-          OCCUPY_SECRET_DIR: src/main/resources
-          OCCUPY_SECRET_DIR_FILE_NAME: secret.yml
-      run: echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_DIR_FILE_NAME
-
     - name: Deliver File
       uses: appleboy/scp-action@master
       with:
           host: ${{ secrets.OCCUPY_SSH_HOST }}
-          username: ${{ secrets.OCCUPY_SSH_USERNAME }}
+          username: ec2-user
           key: ${{ secrets.OCCUPY_SSH_KEY }}
           port: ${{ secrets.OCCUPY_SSH_PORT }}
           source: "build/libs/*.jar"
@@ -61,7 +54,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
           host: ${{ secrets.OCCUPY_SSH_HOST }}
-          username: ${{ secrets.OCCUPY_SSH_USERNAME }}
+          username: ec2-user
           key: ${{ secrets.OCCUPY_SSH_KEY }}
           port: ${{ secrets.OCCUPY_SSH_PORT }}
           script: |
