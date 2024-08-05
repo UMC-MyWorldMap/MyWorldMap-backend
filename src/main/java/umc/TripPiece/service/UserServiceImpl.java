@@ -64,6 +64,30 @@ public class UserServiceImpl implements UserService{
         return user;
     }
 
+    @Transactional
+    public User update(UserRequestDto.UpdateDto request) {
+        String email = request.getEmail();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 계정입니다.");
+        }
+        if(request.getNickname() != null){
+            user.updatenickname(request.getNickname());
+        }
+        if(request.getGender() != null){
+            user.updategender(request.getGender());
+        }
+        if(request.getBirth() != null){
+            user.updatebirth(request.getBirth());
+        }
+        if(request.getCountry() != null){
+            user.updatecountry(request.getCountry());
+        }
+
+        return user;
+
+    }
+
     private boolean isPasswordMatch(String rawPassword, String encodedPassword){
         // password 일치 여부 확인
         return passwordEncoder.matches(rawPassword, encodedPassword);

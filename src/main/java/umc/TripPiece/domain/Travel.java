@@ -35,8 +35,6 @@ public class Travel extends BaseEntity {
     private Long likeCount;
     private String thumbnail;
 
-    @OneToMany(mappedBy = "travel")
-    private List<Like> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "travel")
     private List<TripPiece> tripPieces = new ArrayList<>();

@@ -35,7 +35,7 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, length = 20)
     private String birth;
-    
+
     @Column
     private String profileImg;
 
@@ -51,4 +51,20 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isPublic;
+
+    public void updatenickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updategender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updatebirth(String birth) {
+        this.birth = birth;
+    }
+
+    public void updatecountry(String country) {
+        this.country = country;
+    }
 }

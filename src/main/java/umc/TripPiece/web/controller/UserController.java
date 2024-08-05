@@ -36,7 +36,7 @@ public class UserController {
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입 API",
-    description = "회원가입")
+            description = "회원가입")
     public ApiResponse<UserResponseDto.SignUpResultDto> signUp(@RequestBody @Valid UserRequestDto.SignUpDto request) {
         try {
             User user = userService.signUp(request);
@@ -48,7 +48,7 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "이메일 로그인 API",
-    description = "이메일 로그인 (일반)")
+            description = "이메일 로그인 (일반)")
     public ApiResponse<UserResponseDto.LoginResultDto> login(@RequestBody @Valid UserRequestDto.LoginDto request) {
         User user = userService.login(request);
 
@@ -60,6 +60,19 @@ public class UserController {
             return ApiResponse.onSuccess(UserConverter.toLoginResultDto(user, accessToken, refreshToken));
         } else {
             return ApiResponse.onFailure("400", "로그인에 실패했습니다.", null);
+        }
+    }
+
+    @PostMapping("/update")
+    @Operation(summary = "프로필 수정하기 API",
+            description = "프로필 수정하기")
+    public ApiResponse<UserResponseDto.UpdateResultDto> update(@RequestBody @Valid UserRequestDto.UpdateDto request) {
+        User user = userService.update(request);
+
+        if (user != null) {
+            return ApiResponse.onSuccess(UserConverter.toUpdateResultDto(user));
+        } else {
+            return ApiResponse.onFailure("400", "프로필 수정에 실패했습니다.", null);
         }
     }
 

@@ -39,4 +39,15 @@ public class UserResponseDto {
         String accessToken;
         String refreshToken;
     }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    public static class UpdateResultDto {
+        String email;
+        String nickname;
+        Gender gender;
+        String birth;
+        String country;
+    }
 }
