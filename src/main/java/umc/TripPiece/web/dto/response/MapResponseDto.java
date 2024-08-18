@@ -1,6 +1,8 @@
 package umc.TripPiece.web.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import umc.TripPiece.domain.enums.Color;
 import umc.TripPiece.domain.Map;
 
@@ -20,14 +22,13 @@ public class MapResponseDto {
         this.color = map.getColor();
     }
 
-    @Getter
+    // MarkerResponse 클래스 정의
+    @Data
+    @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
-    public static class getMarkerResponse {
-        private Color color;
-        private String markerImg;
-        private String countryCode;
+    public static class MarkerResponse {
         private String countryName;
         private String cityName;
+        private String thumbnailUrl;
     }
 }

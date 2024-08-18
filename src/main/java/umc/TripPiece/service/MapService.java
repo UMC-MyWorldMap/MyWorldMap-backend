@@ -8,7 +8,6 @@ import umc.TripPiece.domain.City;
 import umc.TripPiece.domain.Country;
 import umc.TripPiece.domain.Map;
 import umc.TripPiece.domain.Travel;
-import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.MapRepository;
 import umc.TripPiece.repository.CityRepository;
 import umc.TripPiece.repository.TravelRepository;
@@ -27,15 +26,16 @@ public class MapService {
 
     private final MapRepository mapRepository;
     private final CityRepository cityRepository;
-    private final JWTUtil jwtUtil;
     private final TravelRepository travelRepository;
 
-    public List<MapResponseDto> getAllMaps() {
-        return mapRepository.findAll().stream()
+    // 특정 유저의 모든 맵 정보를 조회하는 메서드
+    public List<MapResponseDto> getMapsByUserId(Long userId) {
+        return mapRepository.findByUserId(userId).stream()
                 .map(MapConverter::toMapResponseDto)
                 .collect(Collectors.toList());
     }
 
+    // 맵을 생성하는 메서드
     @Transactional
     public MapResponseDto createMap(MapRequestDto requestDto) {
         Map map = MapConverter.toMap(requestDto);
@@ -43,39 +43,38 @@ public class MapService {
         return MapConverter.toMapResponseDto(savedMap);
     }
 
+    // 유저 ID별 방문한 나라 수 계산 메서드
     public long countCountriesByUserId(Long userId) {
         return mapRepository.countDistinctCountryCodeByUserId(userId);
     }
 
+    // 유저 ID별 방문한 도시 수 계산 메서드
     public long countCitiesByUserId(Long userId) {
         return cityRepository.countDistinctCityByUserId(userId);
     }
 
-    public MapStatsResponseDto getMapStats(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-
+    // 유저 ID별 나라/도시 수 통계 조회 메서드
+    public MapStatsResponseDto getMapStatsByUserId(Long userId) {
         long countryCount = countCountriesByUserId(userId);
         long cityCount = countCitiesByUserId(userId);
         return new MapStatsResponseDto(countryCount, cityCount);
     }
 
+    // 특정 유저의 마커 정보를 반환하는 메서드
     @Transactional
-    public List<MapResponseDto.getMarkerResponse> getMarkers(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<MapResponseDto.MarkerResponse> getMarkersByUserId(Long userId) {
         List<Travel> travels = travelRepository.findByUserId(userId);
-        List<MapResponseDto.getMarkerResponse> markers = new ArrayList<>();
+        List<MapResponseDto.MarkerResponse> markers = new ArrayList<>();
 
-        for(Travel travel : travels) {
+        for (Travel travel : travels) {
             City city = travel.getCity();
             Country country = city.getCountry();
             Map map = mapRepository.findByCountryCodeAndUserId(country.getCode(), userId);
-            MapResponseDto.getMarkerResponse marker = MapConverter.toMarkerResponseDto(map, travel.getThumbnail(), country.getName(), city.getName());
+            MapResponseDto.MarkerResponse marker = new MapResponseDto.MarkerResponse(
+                    country.getName(), city.getName(), travel.getThumbnail());
             markers.add(marker);
         }
 
         return markers;
-
     }
-
-
 }

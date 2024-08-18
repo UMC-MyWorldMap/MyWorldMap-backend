@@ -24,13 +24,12 @@ public class MapConverter {
         );
     }
 
-    public static MapResponseDto.getMarkerResponse toMarkerResponseDto(Map map, String markerImg, String countryName, String cityName) {
-        return MapResponseDto.getMarkerResponse.builder()
-                .color(map.getColor())
-                .markerImg(markerImg)
-                .countryCode(map.getCountryCode())
-                .countryName(countryName)
-                .cityName(cityName)
-                .build();
+    // MarkerResponseDto를 반환하는 메서드
+    public static MapResponseDto.MarkerResponse toMarkerResponseDto(Map map, String thumbnailUrl, String countryName, String cityName) {
+        return new MapResponseDto.MarkerResponse(
+                countryName,
+                cityName,
+                thumbnailUrl
+        );
     }
 }
