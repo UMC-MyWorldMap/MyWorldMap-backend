@@ -21,6 +21,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_MAP(HttpStatus.NOT_FOUND, "MAP404", "해당 맵을 찾을 수 없습니다."),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER404", "해당 유저를 찾을 수 없습니다."),
     NOT_FOUND_CITY(HttpStatus.NOT_FOUND, "CITY404", "해당 도시를 찾을 수 없습니다."),
+    NOT_FOUND_TRAVEL(HttpStatus.NOT_FOUND, "TRAVEL404", "해당 여행기를 찾을 수 없습니다."),
 
     // s3 관련 오류
     PICTURE_EXTENSION_ERROR(HttpStatus.BAD_REQUEST, "PICTURE400", "이미지의 확장자가 잘못되었습니다."),
@@ -42,7 +43,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 여행 조각 관련 오류
     NOT_FOUND_TRIPPIECE(HttpStatus.NOT_FOUND, "TRIPPIECE404", "여행 조각이 존재하지 않습니다"),
-    INVALID_TRIPPIECE_SORT_OPTION(HttpStatus.BAD_REQUEST, "TRIPPIECE401", "유효하지 않은 정렬 조건입니다.");
+    INVALID_TRIPPIECE_SORT_OPTION(HttpStatus.BAD_REQUEST, "TRIPPIECE401", "유효하지 않은 정렬 조건입니다."),
+
+    // 여행기 관련 오류
+    INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유요하지 않은 파라미터입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

@@ -3,6 +3,8 @@ package umc.TripPiece.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.converter.ExploreConverter;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.domain.City;
@@ -45,7 +47,7 @@ public class ExploreService {
         } else if (sort.equals("oldest")) {
             travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(new ArrayList<>(cityIds));
         } else {
-            throw new IllegalArgumentException("파라미터 값이 잘못 되었습니다.");
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_PARARM);
         }
         return travels.stream().distinct().map(ExploreConverter::toExploreListDto).toList();
     }
