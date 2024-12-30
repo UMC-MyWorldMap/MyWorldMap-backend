@@ -2,8 +2,11 @@ package umc.TripPiece.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -44,13 +47,18 @@ public class EmailService {
     }
 
     private String getEmailHtmlContent(String code) throws IOException {
-        String htmlTemplatePath = "src/main/resources/templates/email.html";
-        String content = new String(Files.readAllBytes(Paths.get(htmlTemplatePath)));
+        ClassPathResource resource = new ClassPathResource("templates/email.html");
+        StringBuilder content = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        }
 
         // 인증 코드 삽입
-        content = content.replace("{code}", code);
-
-        return content;
+        return content.toString().replace("{code}", code);
     }
 
     public void sendEmail(String toEmail, String title, String content) throws MessagingException {
