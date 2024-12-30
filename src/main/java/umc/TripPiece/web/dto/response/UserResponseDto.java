@@ -24,7 +24,6 @@ public class UserResponseDto {
         String profileImg;
         String country;
         LocalDateTime createdAt;
-
     }
 
     /* 로그인 */
@@ -98,6 +97,7 @@ public class UserResponseDto {
     @Getter
     @AllArgsConstructor
     public static class ProfileDto {
+        Long userId; // 유저 식별자 추가
         String nickname;
         String profileImg;
         Integer travelNum;
@@ -106,5 +106,4 @@ public class UserResponseDto {
         String country;
         String birth;
     }
-
 }

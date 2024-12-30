@@ -7,6 +7,7 @@ import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
 
 public interface UserService {
+
     /* 회원가입 */
     User signUp(UserRequestDto.SignUpDto request, MultipartFile profileImg);
 
@@ -28,12 +29,12 @@ public interface UserService {
     /* 회원탈퇴 */
     void withdrawal(Long userId);
 
+    /* 유저 저장 */
     User save(User user);
 
-    /* 수정하기 */
+    /* 유저 수정 */
     User update(UserRequestDto.@Valid UpdateDto request, String token, MultipartFile profileImg);
 
     /* 프로필 조회 */
     UserResponseDto.ProfileDto getProfile(String token);
-
 }
