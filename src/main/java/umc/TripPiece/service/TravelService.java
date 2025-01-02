@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.aws.s3.AmazonS3Manager;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.converter.TripPieceConverter;
@@ -14,6 +16,7 @@ import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
+import umc.TripPiece.validation.aspect.UserContext;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
@@ -203,12 +206,12 @@ public class TravelService {
     }
 
     @Transactional
-    public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail, String token) {
+    public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
         if (thumbnail == null || thumbnail.isEmpty()) {
             throw new IllegalArgumentException("Thumbnail is required.");
         }
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
+        Long userId = UserContext.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
 
         City city = cityRepository.findByNameContainingIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new IllegalArgumentException("city not found"));
 

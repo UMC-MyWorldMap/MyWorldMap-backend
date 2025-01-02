@@ -1,5 +1,7 @@
 package umc.TripPiece.validation.aspect;
 
+
+
 public class UserContext {
     private static final ThreadLocal<Long> userIdHolder = new ThreadLocal<>();
 

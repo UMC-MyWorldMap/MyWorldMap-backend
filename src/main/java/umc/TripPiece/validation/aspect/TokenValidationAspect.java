@@ -2,6 +2,7 @@ package umc.TripPiece.validation.aspect;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,15 @@ public class TokenValidationAspect {
         String tokenWithoutBearer = token.substring(7);
         Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
 
+        boolean userExists = userRepository.existsById(userId);
+        if(!userExists) {
+            throw new NotFoundHandler(ErrorStatus.NOT_FOUND_USER);
+        }
+
         UserContext.setUserId(userId);
+    }
+    @After("@annotation(umc.TripPiece.validation.annotation.ValidateToken)")
+    public void clearUserContext() {
+        UserContext.clear();
     }
 }

@@ -15,6 +15,7 @@ import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.repository.TravelRepository;
 import umc.TripPiece.service.TravelService;
+import umc.TripPiece.validation.annotation.ValidateToken;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
@@ -32,10 +33,10 @@ public class TravelController {
 
 
     @PostMapping(value = "/mytravels", consumes = "multipart/form-data")
+    @ValidateToken
     @Operation(summary = "여행 생성 API", description = "여행 시작하기")
-    public ResponseEntity<ApiResponse<TravelResponseDto.Create>> createTravel(@Valid @RequestPart("data") TravelRequestDto.Create request, @RequestPart("thumbnail") MultipartFile thumbnail, @RequestHeader("Authorization") String token){
-        String tokenWithoutBearer = token.substring(7);
-        TravelResponseDto.Create response = travelService.createTravel(request, thumbnail, tokenWithoutBearer);
+    public ResponseEntity<ApiResponse<TravelResponseDto.Create>> createTravel(@Valid @RequestPart("data") TravelRequestDto.Create request, @RequestPart("thumbnail") MultipartFile thumbnail){
+        TravelResponseDto.Create response = travelService.createTravel(request, thumbnail);
 
         if(response == null) {return new ResponseEntity<>(ApiResponse.onFailure("400", "현재 진행 중인 여행기가 있습니다.", null), HttpStatus.BAD_REQUEST);}
 
