@@ -44,10 +44,8 @@ public class ExploreService {
         List<Travel> travels;
         if(sort.equals("latest")) {
             travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtDesc(new ArrayList<>(cityIds));
-        } else if (sort.equals("oldest")) {
-            travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(new ArrayList<>(cityIds));
         } else {
-            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_PARARM);
+            travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(new ArrayList<>(cityIds));
         }
         return travels.stream().distinct().map(ExploreConverter::toExploreListDto).toList();
     }
