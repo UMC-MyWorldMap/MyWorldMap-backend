@@ -6,9 +6,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.GeneralException;
 import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.domain.Travel;
@@ -17,6 +19,7 @@ import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.repository.TravelRepository;
 import umc.TripPiece.service.TravelService;
+import umc.TripPiece.validation.annotation.ExistEntity;
 import umc.TripPiece.validation.annotation.ValidateToken;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
@@ -27,6 +30,7 @@ import java.util.regex.Pattern;
 
 @Tag(name = "Travel", description = "여행기 관련 API")
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class TravelController {
 
@@ -48,7 +52,7 @@ public class TravelController {
 
     @PostMapping("/mytravels/end/{travelId}")
     @Operation(summary = "여행 종료 API", description = "여행을 종료하고 요약 정보 반환")
-    public ApiResponse<TravelResponseDto.TripSummaryDto> endTravel(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<TravelResponseDto.TripSummaryDto> endTravel(@PathVariable("travelId") @ExistEntity(entityType = umc.TripPiece.domain.Travel.class) Long travelId) {
         TravelResponseDto.TripSummaryDto response = travelService.endTravel(travelId);
         return ApiResponse.onSuccess(response);
     }

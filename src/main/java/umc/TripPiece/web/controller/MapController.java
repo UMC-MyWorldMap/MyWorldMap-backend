@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import umc.TripPiece.service.CityService;
 import umc.TripPiece.service.MapService;
+import umc.TripPiece.validation.annotation.ExistEntity;
 import umc.TripPiece.web.dto.request.CityRequestDto;
 import umc.TripPiece.web.dto.request.MapRequestDto;
 
@@ -43,7 +44,7 @@ public class MapController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "유저별 맵 불러오기 API", description = "유저별 맵 리스트 반환")
-    public ApiResponse<List<MapResponseDto>> getMapsByUserId(@PathVariable(name = "userId") @ExistUser Long userId) {
+    public ApiResponse<List<MapResponseDto>> getMapsByUserId(@PathVariable(name = "userId") @ExistEntity(entityType = umc.TripPiece.domain.User.class) Long userId) {
         List<MapResponseDto> maps = mapService.getMapsByUserId(userId);
         return ApiResponse.onSuccess(maps);
     }
