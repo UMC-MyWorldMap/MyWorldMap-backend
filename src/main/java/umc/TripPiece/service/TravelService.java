@@ -238,7 +238,10 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDto.TripSummaryDto endTravel(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId).orElseThrow();
+        if (travel.getStatus() == TravelStatus.COMPLETED) {
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
+        }
         travel.setStatus(TravelStatus.COMPLETED);
 
         City city = travel.getCity();

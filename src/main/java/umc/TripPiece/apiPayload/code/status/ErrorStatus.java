@@ -51,6 +51,7 @@ public enum ErrorStatus implements BaseErrorCode {
     MISSING_TRAVEL_THUMBNAIL(HttpStatus.BAD_REQUEST,"TRAVEL400","썸네일이 필요합니다."),
     INVALID_TRAVEL_DATE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행 기간이 유효하지 않습니다."),
     INVALID_TRAVEL_TITLE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행기 제목이 유효하지 않습니다."),
+    TRAVEL_COMPLETED(HttpStatus.BAD_REQUEST, "TRAVEL400", "해당 여행은 이미 종료되었습니다."),
 
     // 요청 정보를 가지고 올 수 없을 때
     REQUEST_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "REQUEST404", "요청 정보를 가져올 수 없습니다.");
