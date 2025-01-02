@@ -20,17 +20,21 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class User extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="user_id", unique = true, nullable = false)
+    @Column(name = "user_id", unique = true, nullable = false)
     private Long id;
 
+    @Setter
     @Column(length = 20)
     private String name;
 
+    @Setter
     @Column(nullable = false)
     private String email;
 
+    @Setter
     @Column
     private String password;
 
@@ -46,22 +50,25 @@ public class User extends BaseEntity {
     @Setter
     @Column(nullable = false, length = 20)
     private String birth;
-    
-    @Column
+
     @Setter
+    @Column
     private String profileImg;
 
     @Setter
     @Column(nullable = false, length = 30)
     private String country;
 
-    @Column (nullable = false)
+    @Setter
+    @Column(nullable = false)
     private Boolean gpsConsent;
 
+    @Setter
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private UserMethod method;
 
+    @Setter
     @Column(nullable = false)
     @ColumnDefault("false")
     private Boolean isPublic;
@@ -74,14 +81,10 @@ public class User extends BaseEntity {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    // 일반 가입자와 소셜 로그인 회원 구분을 위한 providerId
+    @Setter
     @Column(name = "provider_id", unique = true)
     private Long providerId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<TripPiece> tripPieces = new ArrayList<>();
-
-    public Uuid getUuid() {
-        return this.uuid;
-    }
 }

@@ -36,11 +36,12 @@ public class Travel extends BaseEntity {
     private City city;
 
     private String title;
+    private String description;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String description;
     private boolean travelOpen;
     private Long likeCount;
+
     @Setter
     private String thumbnail;
 
@@ -60,9 +61,6 @@ public class Travel extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TravelStatus status;
 
-//    @OneToMany(mappedBy = "travel")
-//    private List<Like> likes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "travel")
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripPiece> tripPieces = new ArrayList<>();
 }

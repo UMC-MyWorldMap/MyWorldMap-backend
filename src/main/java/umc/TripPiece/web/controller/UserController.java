@@ -5,20 +5,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
 import umc.TripPiece.apiPayload.exception.GeneralException;
 import umc.TripPiece.apiPayload.exception.handler.UserHandler;
 import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.jwt.JWTUtil;
-import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.service.UserService;
 import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
@@ -36,9 +35,10 @@ public class UserController {
     private final JWTUtil jwtUtil;
 
     @PostMapping(value = "/signup", consumes = "multipart/form-data")
-    @Operation(summary = "회원가입 API",
-    description = "회원가입")
-    public ApiResponse<UserResponseDto.SignUpResultDto> signUp(@RequestPart("info") @Valid UserRequestDto.SignUpDto request, @RequestPart("profileImg") MultipartFile profileImg) {
+    @Operation(summary = "회원가입 API", description = "회원가입")
+    public ApiResponse<UserResponseDto.SignUpResultDto> signUp(
+            @RequestPart("info") @Valid UserRequestDto.SignUpDto request,
+            @RequestPart("profileImg") MultipartFile profileImg) {
         try {
             User user = userService.signUp(request, profileImg);
             return ApiResponse.onSuccess(UserConverter.toSignUpResultDto(user));
@@ -48,16 +48,12 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "이메일 로그인 API",
-    description = "이메일 로그인 (일반)")
+    @Operation(summary = "이메일 로그인 API", description = "이메일 로그인 (일반)")
     public ApiResponse<UserResponseDto.LoginResultDto> login(@RequestBody @Valid UserRequestDto.LoginDto request) {
         User user = userService.login(request);
-
         if (user != null) {
-            // 로그인 성공 시 토큰 생성
             String accessToken = jwtUtil.createAccessToken(request.getEmail());
             String refreshToken = user.getRefreshToken();
-
             return ApiResponse.onSuccess(UserConverter.toLoginResultDto(user, accessToken, refreshToken));
         } else {
             return ApiResponse.onFailure("400", "로그인에 실패했습니다.", null);
@@ -68,28 +64,27 @@ public class UserController {
     @Operation(summary = "토큰 재발급 API", description = "refresh token을 통한 access token, refresh token 재발급")
     public ApiResponse<UserResponseDto.ReissueResultDto> refresh(
             @RequestBody @Valid UserRequestDto.ReissueDto request) {
-
         User user = userService.reissue(request);
         String newAccessToken = jwtUtil.createAccessToken(user.getEmail());
         String newRefreshToken = jwtUtil.createRefreshToken(user.getEmail());
         user.setRefreshToken(newRefreshToken);
-
         userService.save(user);
         return ApiResponse.onSuccess(UserConverter.toReissueResultDto(newAccessToken, newRefreshToken));
     }
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = "로그아웃")
-    public ApiResponse<String> logout(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
-            return ApiResponse.onFailure("400", "토큰이 유효하지 않습니다.", null);
+    public ApiResponse<String> logout(@RequestHeader("Authorization") String token) {
+        if (!token.startsWith("Bearer ")) {
+            return ApiResponse.onFailure("400", "유효하지 않은 토큰 형식입니다.", null);
         }
 
-        String token = header.substring(7);
+        String tokenWithoutBearer = token.substring(7);
         try {
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            if (userId==null) return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
+            Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
+            if (userId == null) {
+                return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
+            }
             userService.logout(userId);
             return ApiResponse.onSuccess("로그아웃에 성공했습니다.");
         } catch (Exception e) {
@@ -99,17 +94,17 @@ public class UserController {
 
     @DeleteMapping("/withdrawal")
     @Operation(summary = "회원탈퇴 API", description = "회원탈퇴")
-    public ApiResponse<String> withdrawal(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
-            return ApiResponse.onFailure("400", "토큰이 유효하지 않습니다.", null);
+    public ApiResponse<String> withdrawal(@RequestHeader("Authorization") String token) {
+        if (!token.startsWith("Bearer ")) {
+            return ApiResponse.onFailure("400", "유효하지 않은 토큰 형식입니다.", null);
         }
 
-        String token = header.substring(7);
-
+        String tokenWithoutBearer = token.substring(7);
         try {
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            if (userId==null) return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
+            Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
+            if (userId == null) {
+                return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
+            }
             userService.withdrawal(userId);
             return ApiResponse.onSuccess("회원탈퇴에 성공했습니다.");
         } catch (Exception e) {
@@ -118,9 +113,11 @@ public class UserController {
     }
 
     @PatchMapping(value = "/update", consumes = "multipart/form-data")
-    @Operation(summary = "프로필 수정하기 API",
-            description = "프로필 수정하기")
-    public ApiResponse<UserResponseDto.UpdateResultDto> update(@RequestPart("info") @Valid UserRequestDto.UpdateDto request, @RequestHeader("Authorization") String token, @RequestPart(value = "profileImg", required = false) MultipartFile profileImg) {
+    @Operation(summary = "프로필 수정하기 API", description = "프로필 수정하기")
+    public ApiResponse<UserResponseDto.UpdateResultDto> update(
+            @RequestPart("info") @Valid UserRequestDto.UpdateDto request,
+            @RequestHeader("Authorization") String token,
+            @RequestPart(value = "profileImg", required = false) MultipartFile profileImg) {
         try {
             String tokenWithoutBearer = token.substring(7);
             User user = userService.update(request, tokenWithoutBearer, profileImg);
@@ -133,8 +130,7 @@ public class UserController {
     }
 
     @GetMapping("/myprofile")
-    @Operation(summary = "프로필 조회 API",
-            description = "마이페이지 프로필 조회")
+    @Operation(summary = "프로필 조회 API", description = "마이페이지 프로필 조회")
     public ApiResponse<UserResponseDto.ProfileDto> getProfile(@RequestHeader("Authorization") String token) {
         String tokenWithoutBearer = token.substring(7);
         return ApiResponse.onSuccess(userService.getProfile(tokenWithoutBearer));
@@ -149,9 +145,9 @@ public class UserController {
             errors.put(fieldName, errorMessage);
         });
 
-        String combinedMessage = String.join(" + ", errors.values());
+        String combinedMessage = String.join(", ", errors.values());
 
-        return new ResponseEntity<>(ApiResponse.onFailure("400", combinedMessage, null), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ApiResponse.onFailure("400", combinedMessage, errors), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
