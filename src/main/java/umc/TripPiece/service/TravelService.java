@@ -255,7 +255,6 @@ public class TravelService {
 
     @Transactional
     public List<TravelResponseDto.TripPieceSummaryDto> continueTravel(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
         List<TripPiece> tripPieces = tripPieceRepository.findByTravelId(travelId);
 
         java.util.Map<LocalDate, List<TripPiece>> tripPiecesByDate = tripPieces.stream()

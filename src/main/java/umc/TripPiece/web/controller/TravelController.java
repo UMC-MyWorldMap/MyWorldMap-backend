@@ -58,7 +58,7 @@ public class TravelController {
     }
     @GetMapping("/mytravels/continue/{travelId}")
     @Operation(summary = "여행 이어보기 API", description = "여행을 이어볼 날짜별 조각 반환")
-    public ApiResponse<List<TravelResponseDto.TripPieceSummaryDto>> continueTravel(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<List<TravelResponseDto.TripPieceSummaryDto>> continueTravel(@PathVariable("travelId") @ExistEntity(entityType = umc.TripPiece.domain.Travel.class) Long travelId) {
         List<TravelResponseDto.TripPieceSummaryDto> response = travelService.continueTravel(travelId);
         return ApiResponse.onSuccess(response);
     }
