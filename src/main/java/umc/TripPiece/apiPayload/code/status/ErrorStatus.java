@@ -39,14 +39,18 @@ public enum ErrorStatus implements BaseErrorCode {
     // 사용자 관련 오류
     INVALID_PROFILE_IMAGE(HttpStatus.BAD_REQUEST, "PROFILE400", "잘못된 프로필 이미지 형식입니다."),
     PROFILE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PROFILE500", "프로필 업데이트에 실패했습니다."),
-    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "TOKEN400", "유효하지 않은 토큰입니다."),
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "TOKEN401", "유효하지 않은 토큰입니다."),
 
     // 여행 조각 관련 오류
     NOT_FOUND_TRIPPIECE(HttpStatus.NOT_FOUND, "TRIPPIECE404", "여행 조각이 존재하지 않습니다"),
     INVALID_TRIPPIECE_SORT_OPTION(HttpStatus.BAD_REQUEST, "TRIPPIECE401", "유효하지 않은 정렬 조건입니다."),
 
     // 여행기 관련 오류
-    INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유요하지 않은 파라미터입니다."),
+    INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유효하지 않은 파라미터입니다."),
+    TRAVEL_INPROGRESS(HttpStatus.BAD_REQUEST, "TRAVEL400", "현재 진행 중인 여행기가 있습니다."),
+    MISSING_TRAVEL_THUMBNAIL(HttpStatus.BAD_REQUEST,"TRAVEL400","썸네일이 필요합니다."),
+    INVALID_TRAVEL_DATE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행 기간이 유효하지 않습니다."),
+    INVALID_TRAVEL_TITLE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행기 제목이 유효하지 않습니다."),
 
     // 요청 정보를 가지고 올 수 없을 때
     REQUEST_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "REQUEST404", "요청 정보를 가져올 수 없습니다.");

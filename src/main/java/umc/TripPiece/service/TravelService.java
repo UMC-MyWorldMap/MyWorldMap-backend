@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.aws.s3.AmazonS3Manager;
 import umc.TripPiece.converter.TravelConverter;
@@ -207,27 +208,24 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
-        if (thumbnail == null || thumbnail.isEmpty()) {
-            throw new IllegalArgumentException("Thumbnail is required.");
-        }
         Long userId = UserContext.getUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
-
-        City city = cityRepository.findByNameContainingIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new IllegalArgumentException("city not found"));
+        City city = cityRepository.findByNameContainingIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date.");
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_DATE);
         }
-
         if (request.getTitle().isEmpty()) {
-            throw new IllegalArgumentException("title cannot be null");
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_TITLE);
         }
 
         String uuid = UUID.randomUUID().toString();
         String thumbnailUrl = s3Manager.uploadFile("thumbnails/" + uuid, thumbnail);
 
         Travel OngoingTravel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId);
-        if(OngoingTravel != null) return null;
+        if(OngoingTravel != null) {
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS);
+        }
 
         Travel travel = TravelConverter.toTravel(request, city);
         travel.setUser(user);
