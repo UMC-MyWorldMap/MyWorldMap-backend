@@ -3,6 +3,8 @@ package umc.TripPiece.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.converter.ExploreConverter;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.domain.City;
@@ -42,10 +44,8 @@ public class ExploreService {
         List<Travel> travels;
         if(sort.equals("latest")) {
             travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtDesc(new ArrayList<>(cityIds));
-        } else if (sort.equals("oldest")) {
-            travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(new ArrayList<>(cityIds));
         } else {
-            throw new IllegalArgumentException("파라미터 값이 잘못 되었습니다.");
+            travels = travelRepository.findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(new ArrayList<>(cityIds));
         }
         return travels.stream().distinct().map(ExploreConverter::toExploreListDto).toList();
     }
@@ -53,7 +53,7 @@ public class ExploreService {
     @Transactional
     public List<ExploreResponseDto.PopularCitiesDto> getCitiesByTravelCount() {
        List<City> cities = cityRepository.findAllByOrderByLogCountDesc();
-       return cities.stream().map(ExploreConverter::toPopularCitiesDto).toList();
+       return cities.stream().limit(8).map(ExploreConverter::toPopularCitiesDto).toList();
     }
 
 
