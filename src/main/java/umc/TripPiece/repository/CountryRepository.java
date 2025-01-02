@@ -7,5 +7,5 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface CountryRepository extends JpaRepository<Country, Long> {
-    List<Country> findByNameContainingIgnoreCase(String name);
+    List<Country> findByNameIgnoreCase(String name);
 }

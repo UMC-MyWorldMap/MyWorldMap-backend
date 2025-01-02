@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface CityRepository extends JpaRepository<City, Long> {
-    List<City> findByNameContainingIgnoreCase(String name);
+    List<City> findByNameIgnoreCase(String name);
     List<City> findByCountryId(Long countryId);
 
     @Query("SELECT COUNT(DISTINCT t.city) FROM Travel t WHERE t.user.id = :userId")

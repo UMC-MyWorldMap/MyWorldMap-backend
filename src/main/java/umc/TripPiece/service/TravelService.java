@@ -43,21 +43,6 @@ public class TravelService {
     private final AmazonS3Manager s3Manager;
     private final JWTUtil jwtUtil;
 
-    public List<Travel> searchByKeyword(String keyword) {
-        List<City> cities = cityRepository.findByNameContainingIgnoreCase(keyword);
-        List<Country> countries = countryRepository.findByNameContainingIgnoreCase(keyword);
-
-        List<Travel> travels = new ArrayList<>();
-
-        if(!cities.isEmpty()) {
-            travels.addAll(cities.stream().flatMap(city -> travelRepository.findByCityId(city.getId()).stream()).toList());
-        }
-        if(!countries.isEmpty()) {
-            travels.addAll(countries.stream().flatMap(country -> travelRepository.findByCity_CountryId(country.getId()).stream()).toList());
-        }
-        return travels;
-    }
-
 
     @Transactional
     public TripPiece createMemo(Long travelId, TravelRequestDto.MemoDto request, String token) {
@@ -210,7 +195,12 @@ public class TravelService {
     public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
         Long userId = UserContext.getUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
-        City city = cityRepository.findByNameContainingIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
+        City city = cityRepository.findByNameIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
+        Country country = countryRepository.findByNameIgnoreCase(request.getCountryName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_COUNTRY));
+
+        if (!city.getCountry().getId().equals(country.getId())) {
+            throw new BadRequestHandler(ErrorStatus.INVALID_CITY_COUNTRY_RELATION);
+        }
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_DATE);

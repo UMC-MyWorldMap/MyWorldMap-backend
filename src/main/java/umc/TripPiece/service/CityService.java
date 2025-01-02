@@ -28,8 +28,8 @@ public class CityService {
             return Collections.emptyList(); // 빈 리스트를 반환
         }
 
-        List<City> cities = cityRepository.findByNameContainingIgnoreCase(keyword);
-        List<Country> countries = countryRepository.findByNameContainingIgnoreCase(keyword);
+        List<City> cities = cityRepository.findByNameIgnoreCase(keyword);
+        List<Country> countries = countryRepository.findByNameIgnoreCase(keyword);
 
         List<CityResponseDto.searchDto> searched = new ArrayList<>();
 
