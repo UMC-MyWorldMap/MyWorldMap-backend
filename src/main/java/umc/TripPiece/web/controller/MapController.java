@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
 
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.service.MapService;
 import umc.TripPiece.validation.annotation.ExistEntity;
 import umc.TripPiece.web.dto.request.MapRequestDto;
@@ -97,7 +99,7 @@ public class MapController {
     public ApiResponse<List<MapResponseDto.searchDto>> searchCities(@RequestParam String keyword){
         List<MapResponseDto.searchDto> result = mapService.searchCitiesCountry(keyword);
         if (result.isEmpty()) {
-            return ApiResponse.onFailure("404", "No matching cities or countries found.", null);
+            throw new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY_COUNTRY);
         }
         else {
             return ApiResponse.onSuccess(result);
