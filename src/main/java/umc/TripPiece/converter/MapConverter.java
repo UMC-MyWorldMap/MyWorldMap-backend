@@ -42,4 +42,14 @@ public class MapConverter {
                 .cityName(cityName)
                 .build();
     }
+    public static MapResponseDto.searchDto toSearchDto(City city){
+        return new MapResponseDto.searchDto(
+                city.getName(),
+                city.getCountry().getName(),
+                city.getComment(),
+                city.getCountry().getCountryImage(),
+                city.getLogCount(),
+                city.getId()
+        );
+    }
 }

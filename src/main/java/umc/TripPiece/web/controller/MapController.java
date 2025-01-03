@@ -7,13 +7,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
 
-import umc.TripPiece.service.CityService;
 import umc.TripPiece.service.MapService;
 import umc.TripPiece.validation.annotation.ExistEntity;
-import umc.TripPiece.web.dto.request.CityRequestDto;
 import umc.TripPiece.web.dto.request.MapRequestDto;
 
-import umc.TripPiece.web.dto.response.CityResponseDto;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +37,6 @@ import java.util.List;
 public class MapController {
 
     private final MapService mapService;
-    private final CityService cityService;
 
     @GetMapping("/{userId}")
     @Operation(summary = "유저별 맵 불러오기 API", description = "유저별 맵 리스트 반환")
@@ -98,9 +94,8 @@ public class MapController {
 
     @GetMapping("/search")
     @Operation(summary = "도시, 국가 검색 API", description = "도시, 국가 검색")
-    public ApiResponse<List<CityResponseDto.searchDto>> searchCities(@RequestParam String keyword){
-        List<CityResponseDto.searchDto> result = cityService.searchCity(keyword);
-
+    public ApiResponse<List<MapResponseDto.searchDto>> searchCities(@RequestParam String keyword){
+        List<MapResponseDto.searchDto> result = mapService.searchCitiesCountry(keyword);
         if (result.isEmpty()) {
             return ApiResponse.onFailure("404", "No matching cities or countries found.", null);
         }

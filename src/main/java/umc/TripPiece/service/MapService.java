@@ -11,15 +11,13 @@ import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.enums.Color;
 import umc.TripPiece.domain.jwt.JWTUtil;
-import umc.TripPiece.repository.MapRepository;
-import umc.TripPiece.repository.CityRepository;
-import umc.TripPiece.repository.TravelRepository;
-import umc.TripPiece.repository.UserRepository;
+import umc.TripPiece.repository.*;
 import umc.TripPiece.web.dto.request.MapRequestDto;
 import umc.TripPiece.web.dto.response.MapResponseDto;
 import umc.TripPiece.web.dto.response.MapStatsResponseDto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +31,7 @@ public class MapService {
     private final JWTUtil jwtUtil;
     private final TravelRepository travelRepository;
     private final UserRepository userRepository;
+    private final CountryRepository countryRepository;
 
     // 유저별 맵 리스트를 조회하는 메소드
     public List<MapResponseDto> getMapsByUserId(Long userId) {
@@ -115,5 +114,29 @@ public class MapService {
         map.setColors(colors);  // 다중 색상 설정
         Map updatedMap = mapRepository.save(map);
         return MapConverter.toMapResponseDto(updatedMap);
+    }
+
+    public List<MapResponseDto.searchDto> searchCitiesCountry(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList(); // 빈 리스트를 반환
+        }
+
+        List<City> cities = cityRepository.findByNameIgnoreCase(keyword);
+        List<Country> countries = countryRepository.findByNameIgnoreCase(keyword);
+
+        List<MapResponseDto.searchDto> searched = new ArrayList<>();
+
+        if (!cities.isEmpty()){
+            searched.addAll(cities.stream().map(MapConverter::toSearchDto).toList());
+        }
+
+        if(!countries.isEmpty()){
+            countries.forEach(country -> {
+                List<City> citiesInCountry = cityRepository.findByCountryId(country.getId());
+                searched.addAll(citiesInCountry.stream().map(MapConverter::toSearchDto).toList());
+            });
+        }
+
+        return searched;
     }
 }
