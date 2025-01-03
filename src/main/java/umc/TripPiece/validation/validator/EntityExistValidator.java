@@ -15,14 +15,11 @@ import java.util.Map;
 public class EntityExistValidator implements ConstraintValidator<ExistEntity, Long> {
     private final Map<Class<?>, JpaRepository<?, Long>> repositoryMap;
     private final Map<Class<?>, ErrorStatus> errorStatusMap;
-
     private Class<?> entityType;
-    private String customMsg;
 
     @Override
     public void initialize(ExistEntity constraintAnnotation){
         this.entityType = constraintAnnotation.entityType();
-        this.customMsg = constraintAnnotation.message();
     }
 
     @Override
@@ -50,7 +47,4 @@ public class EntityExistValidator implements ConstraintValidator<ExistEntity, Lo
 
         return exists;
     }
-
-
-
 }
