@@ -1,8 +1,10 @@
 package umc.TripPiece.web.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import umc.TripPiece.apiPayload.exception.GeneralException;
 import umc.TripPiece.apiPayload.exception.handler.UserHandler;
 import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.User;
+import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.service.UserService;
 import umc.TripPiece.web.dto.request.UserRequestDto;
@@ -35,7 +38,7 @@ public class UserController {
     private final JWTUtil jwtUtil;
 
     @PostMapping(value = "/signup", consumes = "multipart/form-data")
-    @Operation(summary = "회원가입 API", description = "회원가입")
+    @Operation(summary = "일반 회원가입 API", description = "일반 회원가입")
     public ApiResponse<UserResponseDto.SignUpResultDto> signUp(
             @RequestPart("info") @Valid UserRequestDto.SignUpDto request,
             @RequestPart("profileImg") MultipartFile profileImg) {
@@ -57,6 +60,63 @@ public class UserController {
             return ApiResponse.onSuccess(UserConverter.toLoginResultDto(user, accessToken, refreshToken));
         } else {
             return ApiResponse.onFailure("400", "로그인에 실패했습니다.", null);
+        }
+    }
+
+    @PostMapping(value = "/signup/{platform}", consumes = "multipart/form-data")
+    @Operation(summary = "소셜 회원가입 API", description = "소셜 로그인 후 진행하는 회원가입")
+    public ApiResponse<UserResponseDto.SignUpSocialResultDto> signUp(@PathVariable("platform") String platform, @RequestPart("info") @Valid UserRequestDto.SignUpSocialDto request, @RequestPart("profileImg") MultipartFile profileImg) {
+        UserMethod method;
+        try {
+            method = UserMethod.valueOf(platform.toUpperCase());
+            // 일반 회원가입 요청 방지
+            if (method == UserMethod.GENERAL) {
+                return ApiResponse.onFailure("400", "일반 회원가입에 대한 요청입니다.", null);
+            }
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("400", "유효하지 않은 플랫폼입니다. (KAKAO 또는 APPLE만 허용)", null);
+        }
+
+        try {
+            User user = userService.signUpSocial(method, request, profileImg);
+            return ApiResponse.onSuccess(UserConverter.toSignUpKakaoResultDto(user));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("400", e.getMessage(), null);
+        }
+    }
+
+    @PostMapping("/login/{platform}")
+    @Operation(summary = "소셜 로그인 API",
+            description = "카카오/애플 계정의 존재 여부 확인")
+    public ApiResponse<UserResponseDto.LoginSocialResultDto> login(@Parameter(
+            name = "platform",
+            description = "소셜 로그인 플랫폼 (KAKAO 또는 APPLE)",
+            required = true,
+            in = ParameterIn.PATH
+    )@PathVariable("platform") String platform, @RequestBody @Valid UserRequestDto.LoginSocialDto request) {
+
+        UserMethod method;
+        try {
+            method = UserMethod.valueOf(platform.toUpperCase());
+            // 일반 로그인 요청 방지
+            if (method == UserMethod.GENERAL) {
+                return ApiResponse.onFailure("400", "일반 로그인에 대한 요청입니다.", null);
+            }
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("400", "유효하지 않은 플랫폼입니다. (KAKAO 또는 APPLE만 허용)", null);
+        }
+
+        User user;
+        user = userService.loginSocial(request, method);
+        if (user != null) {
+            // 로그인 성공 시 토큰 생성
+            String accessToken = jwtUtil.createAccessToken(request.getEmail());
+            String refreshToken = user.getRefreshToken();
+
+            return ApiResponse.onSuccess(UserConverter.toLoginSocialResultDto(user, accessToken, refreshToken));
+        } else {
+            // 유저 정보가 없을 경우 회원가입 페이지로 이동하도록 응답
+            return ApiResponse.onFailure("404", method.name() + "회원정보가 없습니다.", null);
         }
     }
 
