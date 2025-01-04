@@ -124,7 +124,7 @@ public class UserServiceImpl implements UserService{
 
         // 이메일이 존재하지 않을 경우
         if (user == null) {
-            throw new UserHandler(ErrorStatus.NOT_FOUND_USER);
+            throw new NotFoundHandler(ErrorStatus.NOT_FOUND_USER);
         }
 
         // 비밀번호가 일치하지 않을 경우

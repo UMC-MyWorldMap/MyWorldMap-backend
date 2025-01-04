@@ -1,15 +1,18 @@
 package umc.TripPiece.apiPayload.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import umc.TripPiece.apiPayload.code.BaseErrorCode;
 import umc.TripPiece.apiPayload.code.ErrorReasonDTO;
 
 @Getter
-@AllArgsConstructor
 public class GeneralException extends RuntimeException {
 
     private BaseErrorCode code;
+
+    public GeneralException(BaseErrorCode errorCode) {
+        super(errorCode.getReason().getMessage()); // 메시지 초기화
+        this.code = errorCode;
+    }
 
     public ErrorReasonDTO getErrorReason() {
         return this.code.getReason();
