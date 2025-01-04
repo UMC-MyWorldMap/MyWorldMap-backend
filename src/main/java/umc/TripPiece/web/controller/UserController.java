@@ -68,7 +68,12 @@ public class UserController {
 
     @PostMapping(value = "/signup/{platform}", consumes = "multipart/form-data")
     @Operation(summary = "소셜 회원가입 API", description = "소셜 로그인 후 진행하는 회원가입")
-    public ApiResponse<UserResponseDto.SignUpSocialResultDto> signUp(@PathVariable("platform") String platform, @RequestPart("info") @Valid UserRequestDto.SignUpSocialDto request, @RequestPart("profileImg") MultipartFile profileImg) {
+    public ApiResponse<UserResponseDto.SignUpSocialResultDto> signUp(@Parameter(
+            name = "platform",
+            description = "소셜 로그인 플랫폼 (KAKAO 또는 APPLE)",
+            required = true,
+            in = ParameterIn.PATH
+    )@PathVariable("platform") String platform, @RequestPart("info") @Valid UserRequestDto.SignUpSocialDto request, @RequestPart("profileImg") MultipartFile profileImg) {
         UserMethod method;
         try {
             method = UserMethod.valueOf(platform.toUpperCase());
