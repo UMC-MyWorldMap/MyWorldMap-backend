@@ -13,6 +13,7 @@ import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.Uuid;
+import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.TravelRepository;
 import umc.TripPiece.repository.UserRepository;
@@ -21,6 +22,7 @@ import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -73,10 +75,10 @@ public class UserServiceImpl implements UserService{
         return userRepository.save(newUser);
     }
 
-    /* 카카오 회원가입 */
+    /* 소셜 회원가입 */
     @Override
     @Transactional
-    public User signUpKakao(@Valid UserRequestDto.SignUpKakaoDto request, MultipartFile profileImg) {
+    public User signUpSocial(@Valid UserMethod method, UserRequestDto.SignUpSocialDto request, MultipartFile profileImg) {
 
         // 프로필 이미지 일련번호 생성
         String uuid = UUID.randomUUID().toString();
@@ -100,7 +102,7 @@ public class UserServiceImpl implements UserService{
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         });
 
-        User newUser = UserConverter.toUser(request);
+        User newUser = UserConverter.toSocialUser(request, method);
 
         // 프로필 사진 설정
         newUser.setProfileImg(profileImgUrl);
@@ -137,20 +139,26 @@ public class UserServiceImpl implements UserService{
         return user;
     }
 
-    /* 카카오 로그인 */
+    /* 소셜 로그인 */
     @Override
     @Transactional
-    public User loginKakao(UserRequestDto.LoginKakaoDto request) {
+    public User loginSocial(UserRequestDto.LoginSocialDto request, UserMethod method) {
         String email = request.getEmail();
         Long providerId = request.getProviderId();
 
-        // 카카오 계정 조회
-        User user = userRepository.findByEmailAndProviderId(email, providerId).orElse(null);
+        // 소셜 로그인 계정 조회
+        Optional<User> optionalUser;
+        if (method == UserMethod.KAKAO) {
+            optionalUser = userRepository.findByEmailAndProviderId(email, providerId);
+        } else if (method == UserMethod.APPLE) {
+            optionalUser = userRepository.findByEmailAndProviderId(email, providerId);
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 로그인 방식입니다.");
+        }
 
         // 계정이 존재하지 않을 경우
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 카카오 계정입니다.");
-        }
+        User user = optionalUser.orElseThrow(() ->
+                new IllegalArgumentException("존재하지 않는 " + method.name() + " 계정입니다."));
 
         // 로그인 성공시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(email);

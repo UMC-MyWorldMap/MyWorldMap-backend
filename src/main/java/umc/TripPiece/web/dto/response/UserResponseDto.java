@@ -48,12 +48,12 @@ public class UserResponseDto {
         String refreshToken;
     }
 
-    /* 카카오 회원가입 */
+    /* 소셜 회원가입 */
     @Builder
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class SignUpKakaoResultDto {
+    public static class SignUpSocialResultDto {
         private Long id;
         private Long providerId;
         private String name;
@@ -66,11 +66,11 @@ public class UserResponseDto {
         private LocalDateTime createdAt;
     }
 
-    /* 카카오 로그인 */
+    /* 소셜 로그인 */
     @Builder
     @Getter
     @AllArgsConstructor
-    public static class LoginKakaoResultDto {
+    public static class LoginSocialResultDto {
         private Long id;
         private Long providerId;
         private String email;

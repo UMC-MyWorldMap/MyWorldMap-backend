@@ -62,10 +62,10 @@ public class UserRequestDto {
         String refreshToken;
     }
 
-    /* 카카오 회원가입 */
+    /* 소셜 회원가입 */
     @Getter
     @NoArgsConstructor
-    public static class SignUpKakaoDto {
+    public static class SignUpSocialDto {
 
         @NotNull(message = "유저 ID는 필수 입력 항목입니다.")
         private Long providerId;
@@ -90,9 +90,9 @@ public class UserRequestDto {
         private String country;
     }
 
-    /* 카카오 로그인 */
+    /* 소셜 로그인 */
     @Getter
-    public static class LoginKakaoDto {
+    public static class LoginSocialDto {
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
         @Email(message = "유효한 이메일 주소여야 합니다.")
         private String email;
