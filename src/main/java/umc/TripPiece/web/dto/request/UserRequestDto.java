@@ -1,9 +1,11 @@
 package umc.TripPiece.web.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import umc.TripPiece.domain.enums.Gender;
+import umc.TripPiece.validation.RegexConstants;
 import umc.TripPiece.validation.annotation.ValidBirth;
 
 public class UserRequestDto {
@@ -18,12 +20,17 @@ public class UserRequestDto {
         private String name;
 
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Email
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         private String email;
 
         @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
         @Pattern(
-                regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,15}$",
+                regexp = RegexConstants.PASSWORD_REGEX,
                 message = "비밀번호는 영문, 숫자, 특수문자를 포함한 8자에서 15자 사이여야 합니다."
         )
         private String password;
@@ -37,14 +44,17 @@ public class UserRequestDto {
 
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
         @Pattern(
-                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                regexp = RegexConstants.BIRTH_REGEX,
                 message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
         )
         @ValidBirth
         private String birth;
 
         @NotBlank(message = "국적은 필수 입력 항목입니다.")
-        @Pattern(regexp = "^South Korea$", message = "국적은 현재 대한민국만 이용 가능합니다.")
+        @Pattern(
+                regexp = RegexConstants.COUNTRY_REGEX,
+                message = "국적은 현재 대한민국만 이용 가능합니다."
+        )
         private String country;
     }
 
@@ -53,7 +63,11 @@ public class UserRequestDto {
     @Getter
     public static class LoginDto {
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         String email;
 
         @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
@@ -69,7 +83,11 @@ public class UserRequestDto {
         private Long providerId;
 
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         private String email;
 
         @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
@@ -79,16 +97,19 @@ public class UserRequestDto {
         @NotNull(message = "성별은 필수 입력 항목입니다.")
         private Gender gender;
 
+//        @ValidBirth
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
         @Pattern(
-                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                regexp = RegexConstants.BIRTH_REGEX,
                 message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
         )
-        @ValidBirth
         private String birth;
 
         @NotBlank(message = "국적은 필수 입력 항목입니다.")
-        @Pattern(regexp = "^South Korea$", message = "국적은 현재 대한민국만 이용 가능합니다.")
+        @Pattern(
+                regexp = RegexConstants.COUNTRY_REGEX,
+                message = "국적은 현재 대한민국만 이용 가능합니다."
+        )
         private String country;
     }
 
@@ -96,7 +117,11 @@ public class UserRequestDto {
     @Getter
     public static class LoginSocialDto {
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         private String email;
 
         @NotNull(message = "유저 ID는 필수 입력 항목입니다.")
@@ -120,13 +145,16 @@ public class UserRequestDto {
         private Gender gender;
 
         @Pattern(
-                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                regexp = RegexConstants.BIRTH_REGEX,
                 message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
         )
         @ValidBirth
         private String birth;
 
-        @Pattern(regexp = "^South Korea$", message = "국적은 현재 대한민국만 이용 가능합니다.")
+        @Pattern(
+                regexp = RegexConstants.COUNTRY_REGEX,
+                message = "국적은 현재 대한민국만 이용 가능합니다."
+        )
         private String country;
     }
 }
