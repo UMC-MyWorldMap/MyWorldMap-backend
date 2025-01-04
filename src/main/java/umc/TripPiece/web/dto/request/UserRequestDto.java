@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import umc.TripPiece.domain.enums.Gender;
+import umc.TripPiece.validation.annotation.ValidBirth;
 
 public class UserRequestDto {
 
@@ -35,7 +36,11 @@ public class UserRequestDto {
         private Gender gender;
 
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
-        @Pattern(regexp = "^\\d{4}/\\d{2}/\\d{2}$", message = "생일은 YYYY/MM/DD 형식이어야 합니다.")
+        @Pattern(
+                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
+        )
+        @ValidBirth
         private String birth;
 
         @NotBlank(message = "국적은 필수 입력 항목입니다.")
@@ -53,13 +58,6 @@ public class UserRequestDto {
 
         @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
         String password;
-    }
-
-    /* 토큰 재발급 */
-    @Getter
-    public static class ReissueDto {
-        @NotBlank(message = "refreshToken은 필수 입력 항목입니다.")
-        String refreshToken;
     }
 
     /* 소셜 회원가입 */
@@ -82,7 +80,11 @@ public class UserRequestDto {
         private Gender gender;
 
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
-        @Pattern(regexp = "^\\d{4}/\\d{2}/\\d{2}$", message = "생일은 YYYY/MM/DD 형식이어야 합니다.")
+        @Pattern(
+                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
+        )
+        @ValidBirth
         private String birth;
 
         @NotBlank(message = "국적은 필수 입력 항목입니다.")
@@ -101,6 +103,13 @@ public class UserRequestDto {
         private Long providerId;
     }
 
+    /* 토큰 재발급 */
+    @Getter
+    public static class ReissueDto {
+        @NotBlank(message = "refreshToken은 필수 입력 항목입니다.")
+        String refreshToken;
+    }
+
     /* 프로필 수정 */
     @Getter
     public static class UpdateDto {
@@ -110,7 +119,11 @@ public class UserRequestDto {
 
         private Gender gender;
 
-        @Pattern(regexp = "^\\d{4}/\\d{2}/\\d{2}$", message = "생일은 YYYY/MM/DD 형식이어야 합니다.")
+        @Pattern(
+                regexp = "^(19|20)\\d{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$",
+                message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
+        )
+        @ValidBirth
         private String birth;
 
         @Pattern(regexp = "^South Korea$", message = "국적은 현재 대한민국만 이용 가능합니다.")
