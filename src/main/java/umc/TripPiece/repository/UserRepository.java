@@ -2,7 +2,6 @@ package umc.TripPiece.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import umc.TripPiece.domain.User;
-import umc.TripPiece.domain.Uuid;
 
 import java.util.Optional;
 
@@ -12,5 +11,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByRefreshToken(String refreshToken);
     Optional<User> findByEmailAndProviderId(String email, Long providerId);
     Optional<User> findByProviderId(Long providerId);
-    Optional<User> findByUuid(Uuid uuid);
 }

@@ -37,9 +37,17 @@ public enum ErrorStatus implements BaseErrorCode {
     TEXT_LENGTH_100_ERROR(HttpStatus.BAD_REQUEST, "TEXT401", "글자 수가 100자를 초과하였습니다."),
 
     // 사용자 관련 오류
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER404", "존재하지 않는 사용자입니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER401", "비밀번호가 일치하지 않습니다."),
+    PROVIDER_ID_DUPLICATE(HttpStatus.CONFLICT, "USER409", "이미 회원가입된 providerId입니다."),
+    EMAIL_DUPLICATE(HttpStatus.CONFLICT, "USER409", "이미 사용 중인 이메일입니다."),
+    NICKNAME_DUPLICATE(HttpStatus.CONFLICT, "USER409", "이미 사용 중인 닉네임입니다."),
+
     INVALID_PROFILE_IMAGE(HttpStatus.BAD_REQUEST, "PROFILE400", "잘못된 프로필 이미지 형식입니다."),
     PROFILE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PROFILE500", "프로필 업데이트에 실패했습니다."),
+
+    GENERAL_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "일반 회원가입에 대한 요청입니다."),
+    PLATFORM_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "유효하지 않은 소셜 플랫폼입니다. (KAKAO 또는 APPLE만 허용)"),
+    SOCIAL_NOT_FOUND(HttpStatus.BAD_REQUEST, "SOCIAL404", "해당 소셜 플랫폼에 회원정보가 없습니다."),
 
     // 여행 조각 관련 오류
     NOT_FOUND_TRIPPIECE(HttpStatus.NOT_FOUND, "TRIPPIECE404", "여행 조각이 존재하지 않습니다"),

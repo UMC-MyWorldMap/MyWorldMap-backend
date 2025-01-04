@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.apiPayload.exception.handler.UserHandler;
 import umc.TripPiece.aws.s3.AmazonS3Manager;
 import umc.TripPiece.converter.UserConverter;
@@ -49,12 +51,12 @@ public class UserServiceImpl implements UserService{
 
         // 이메일 중복 확인
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new UserHandler(ErrorStatus.EMAIL_DUPLICATE);
         });
 
         // 닉네임 중복 확인
         userRepository.findByNickname(request.getNickname()).ifPresent(user -> {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new UserHandler(ErrorStatus.NICKNAME_DUPLICATE);
         });
 
         // 비밀번호 암호화
@@ -89,17 +91,17 @@ public class UserServiceImpl implements UserService{
 
         // providerId 중복 확인
         userRepository.findByProviderId(request.getProviderId()).ifPresent(user -> {
-            throw new IllegalArgumentException("이미 회원가입된 providerId입니다.");
+            throw new UserHandler(ErrorStatus.PROVIDER_ID_DUPLICATE);
         });
         
         // 이메일 중복 확인
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new UserHandler(ErrorStatus.EMAIL_DUPLICATE);
         });
 
         // 닉네임 중복 확인
         userRepository.findByNickname(request.getNickname()).ifPresent(user -> {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw new UserHandler(ErrorStatus.NICKNAME_DUPLICATE);
         });
 
         User newUser = UserConverter.toSocialUser(request, method);
@@ -122,12 +124,12 @@ public class UserServiceImpl implements UserService{
 
         // 이메일이 존재하지 않을 경우
         if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 계정입니다.");
+            throw new UserHandler(ErrorStatus.NOT_FOUND_USER);
         }
 
         // 비밀번호가 일치하지 않을 경우
         if (!isPasswordMatch(password, user.getPassword())) {
-            throw new IllegalArgumentException("이메일 혹은 비밀번호를 확인해주세요.");
+            throw new UserHandler(ErrorStatus.INVALID_PASSWORD);
         }
 
         // 로그인 성공시 토큰 생성
@@ -153,12 +155,13 @@ public class UserServiceImpl implements UserService{
         } else if (method == UserMethod.APPLE) {
             optionalUser = userRepository.findByEmailAndProviderId(email, providerId);
         } else {
-            throw new IllegalArgumentException("지원하지 않는 로그인 방식입니다.");
+            throw new BadRequestHandler(ErrorStatus.PLATFORM_BAD_REQUEST);
         }
 
         // 계정이 존재하지 않을 경우
+        String errorMessage = "존재하지 않는 " + method.name() + " 계정입니다.";
         User user = optionalUser.orElseThrow(() ->
-                new IllegalArgumentException("존재하지 않는 " + method.name() + " 계정입니다."));
+                new NotFoundHandler(ErrorStatus.SOCIAL_NOT_FOUND, errorMessage));
 
         // 로그인 성공시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(email);
@@ -195,7 +198,7 @@ public class UserServiceImpl implements UserService{
     @Transactional
     public void logout(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("존재하지 않는 계정입니다.")
+            new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
 
         user.setRefreshToken(null);
@@ -208,7 +211,7 @@ public class UserServiceImpl implements UserService{
     public void withdrawal(Long userId) {
         // 유저 정보 조회
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("존재하지 않는 계정입니다.")
+            new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
 
         // 유저와 관련된 여행 정보 삭제
@@ -249,7 +252,7 @@ public class UserServiceImpl implements UserService{
 
         Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new UserHandler(ErrorStatus.USER_NOT_FOUND)
+                new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
 
         String profileImgUrl;
@@ -290,7 +293,7 @@ public class UserServiceImpl implements UserService{
     public UserResponseDto.ProfileDto getProfile(String token) {
         Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("존재하지 않는 계정입니다.")
+            new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
         List<Travel> travels =  travelRepository.findByUserId(userId);
         Integer travelNum = travels.size();

@@ -3,7 +3,6 @@ package umc.TripPiece.web.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
 import umc.TripPiece.apiPayload.exception.GeneralException;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.apiPayload.exception.handler.UserHandler;
 import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.User;
@@ -45,21 +46,23 @@ public class UserController {
         try {
             User user = userService.signUp(request, profileImg);
             return ApiResponse.onSuccess(UserConverter.toSignUpResultDto(user));
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.onFailure("400", e.getMessage(), null);
+        } catch (UserHandler e) {
+            return ApiResponse.onFailure(e.getCode().getReason().getCode(), e.getMessage(), null);
         }
     }
 
     @PostMapping("/login")
     @Operation(summary = "이메일 로그인 API", description = "이메일 로그인 (일반)")
     public ApiResponse<UserResponseDto.LoginResultDto> login(@RequestBody @Valid UserRequestDto.LoginDto request) {
-        User user = userService.login(request);
-        if (user != null) {
+        try {
+            User user = userService.login(request);
+
+            // 로그인 성공 시 토큰 생성
             String accessToken = jwtUtil.createAccessToken(request.getEmail());
             String refreshToken = user.getRefreshToken();
             return ApiResponse.onSuccess(UserConverter.toLoginResultDto(user, accessToken, refreshToken));
-        } else {
-            return ApiResponse.onFailure("400", "로그인에 실패했습니다.", null);
+        } catch (UserHandler e) {
+            return ApiResponse.onFailure(e.getCode().getReason().getCode(), e.getMessage(), null);
         }
     }
 
@@ -71,17 +74,17 @@ public class UserController {
             method = UserMethod.valueOf(platform.toUpperCase());
             // 일반 회원가입 요청 방지
             if (method == UserMethod.GENERAL) {
-                return ApiResponse.onFailure("400", "일반 회원가입에 대한 요청입니다.", null);
+                throw new BadRequestHandler(ErrorStatus.GENERAL_BAD_REQUEST);
             }
         } catch (IllegalArgumentException e) {
-            return ApiResponse.onFailure("400", "유효하지 않은 플랫폼입니다. (KAKAO 또는 APPLE만 허용)", null);
+            throw new BadRequestHandler(ErrorStatus.PLATFORM_BAD_REQUEST);
         }
 
         try {
             User user = userService.signUpSocial(method, request, profileImg);
             return ApiResponse.onSuccess(UserConverter.toSignUpKakaoResultDto(user));
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.onFailure("400", e.getMessage(), null);
+        } catch (UserHandler e) {
+            return ApiResponse.onFailure(e.getCode().getReason().getCode(), e.getMessage(), null);
         }
     }
 
@@ -100,10 +103,10 @@ public class UserController {
             method = UserMethod.valueOf(platform.toUpperCase());
             // 일반 로그인 요청 방지
             if (method == UserMethod.GENERAL) {
-                return ApiResponse.onFailure("400", "일반 로그인에 대한 요청입니다.", null);
+                throw new BadRequestHandler(ErrorStatus.GENERAL_BAD_REQUEST);
             }
         } catch (IllegalArgumentException e) {
-            return ApiResponse.onFailure("400", "유효하지 않은 플랫폼입니다. (KAKAO 또는 APPLE만 허용)", null);
+            throw new BadRequestHandler(ErrorStatus.PLATFORM_BAD_REQUEST);
         }
 
         User user;
@@ -116,7 +119,8 @@ public class UserController {
             return ApiResponse.onSuccess(UserConverter.toLoginSocialResultDto(user, accessToken, refreshToken));
         } else {
             // 유저 정보가 없을 경우 회원가입 페이지로 이동하도록 응답
-            return ApiResponse.onFailure("404", method.name() + "회원정보가 없습니다.", null);
+            String errorMessage = method.name() + " 회원정보가 없습니다.";
+            throw new NotFoundHandler(ErrorStatus.SOCIAL_NOT_FOUND, errorMessage);
         }
     }
 
