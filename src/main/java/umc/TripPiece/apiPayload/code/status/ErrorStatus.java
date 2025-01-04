@@ -47,7 +47,14 @@ public enum ErrorStatus implements BaseErrorCode {
 
     GENERAL_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "일반 회원가입에 대한 요청입니다."),
     PLATFORM_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "유효하지 않은 소셜 플랫폼입니다. (KAKAO 또는 APPLE만 허용)"),
-    SOCIAL_NOT_FOUND(HttpStatus.BAD_REQUEST, "SOCIAL404", "해당 소셜 플랫폼에 회원정보가 없습니다."),
+    SOCIAL_NOT_FOUND(HttpStatus.NOT_FOUND, "SOCIAL404", "해당 소셜 플랫폼에 회원정보가 없습니다."),
+
+    VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 시간인 3분을 초과했습니다."),
+    VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "EMAIL400", "인증번호가 일치하지 않습니다."),
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "EMAIL400", "입력값이 유효하지 않습니다."),
+    VERIFICATION_CODE_NOT_SENT(HttpStatus.NOT_FOUND, "EMAIL404", "인증코드가 발송되지 않은 이메일입니다."),
+    EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL500", "이메일 전송에 실패했습니다."),
+    EMAIL_TEMPLATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL500", "이메일 템플릿을 읽는 중 오류가 발생했습니다."),
 
     // 여행 조각 관련 오류
     NOT_FOUND_TRIPPIECE(HttpStatus.NOT_FOUND, "TRIPPIECE404", "여행 조각이 존재하지 않습니다"),
