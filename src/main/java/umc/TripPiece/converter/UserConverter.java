@@ -72,6 +72,7 @@ public class UserConverter {
 
     public static UserResponseDto.ProfileDto toProfileDto(User user, Integer travelNum) {
         return UserResponseDto.ProfileDto.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
                 .travelNum(travelNum)
