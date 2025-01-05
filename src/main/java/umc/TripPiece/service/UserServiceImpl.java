@@ -241,7 +241,7 @@ public class UserServiceImpl implements UserService{
 
         Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new UserHandler(ErrorStatus.USER_NOT_FOUND)
+                new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
 
         String profileImgUrl;
