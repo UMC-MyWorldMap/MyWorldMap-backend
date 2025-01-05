@@ -58,3 +58,8 @@ jwt:
   secret: ${JWT_KEY}
   accessTokenValidity: 7200000 # 2 hour
   refreshTokenValidity: 604800000 # 1 week
+
+project:
+  properties:
+    firebase-create-scoped: "https://www.googleapis.com/auth/firebase.messaging"
+    firebase-topic: "TripPiece"
