@@ -28,6 +28,15 @@ jobs:
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
         shell: bash
 
+      # Firebase JSON 생성
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "trippiece-fcm.json"
+          json: ${{ secrets.FIREBASE_JSON }}
+          dir: 'src/main/resources/firebase/'
+
       # Gradle 빌드 수행
       - name: Build with Gradle
         run: |

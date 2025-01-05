@@ -50,4 +50,6 @@ dependencies {
 	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 	/* AOP 관련 */
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	/* Firebase 관련 */
+	implementation 'com.google.firebase:firebase-admin:7.1.0'
 }
