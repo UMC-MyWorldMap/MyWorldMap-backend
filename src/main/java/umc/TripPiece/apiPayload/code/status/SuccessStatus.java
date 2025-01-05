@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum SuccessStatus {
-    _OK("200", "요청에 성공했습니다.");
+    _OK("COMMON200", "요청에 성공했습니다.");
 
     private final String code;
     private final String message;

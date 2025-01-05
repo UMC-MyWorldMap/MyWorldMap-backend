@@ -3,6 +3,7 @@ package umc.TripPiece.service;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 import umc.TripPiece.domain.User;
+import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
 
@@ -11,14 +12,14 @@ public interface UserService {
     /* 회원가입 */
     User signUp(UserRequestDto.SignUpDto request, MultipartFile profileImg);
 
-    /* 카카오 회원가입 */
-    User signUpKakao(UserRequestDto.SignUpKakaoDto request, MultipartFile profileImg);
+    /* 소셜 회원가입 */
+    User signUpSocial(UserMethod method, UserRequestDto.SignUpSocialDto request, MultipartFile profileImg);
 
     /* 로그인 */
     User login(UserRequestDto.LoginDto request);
 
-    /* 카카오 로그인 */
-    User loginKakao(UserRequestDto.LoginKakaoDto request);
+    /* 소셜 로그인 */
+    User loginSocial(UserRequestDto.LoginSocialDto request, UserMethod method);
 
     /* 토큰 재발급 */
     User reissue(UserRequestDto.ReissueDto request);

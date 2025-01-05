@@ -5,6 +5,7 @@ import umc.TripPiece.domain.enums.Gender;
 import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
+import umc.TripPiece.web.dto.response.UserResponseDto.SignUpSocialResultDto;
 
 import java.time.LocalDateTime;
 
@@ -24,8 +25,8 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponseDto.SignUpKakaoResultDto toSignUpKakaoResultDto(User user){
-        return UserResponseDto.SignUpKakaoResultDto.builder()
+    public static SignUpSocialResultDto toSignUpKakaoResultDto(User user){
+        return UserResponseDto.SignUpSocialResultDto.builder()
                 .id(user.getId())
                 .providerId(user.getProviderId())
                 .name(user.getName())
@@ -50,8 +51,8 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponseDto.LoginKakaoResultDto toLoginKakaoResultDto(User user, String accessToken, String refreshToken){
-        return UserResponseDto.LoginKakaoResultDto.builder()
+    public static UserResponseDto.LoginSocialResultDto toLoginSocialResultDto(User user, String accessToken, String refreshToken){
+        return UserResponseDto.LoginSocialResultDto.builder()
                 .id(user.getId())
                 .providerId(user.getProviderId())
                 .email(user.getEmail())
@@ -100,8 +101,8 @@ public class UserConverter {
                 .build();
     }
 
-    /* 카카오 회원가입용 */
-    public static User toUser(UserRequestDto.SignUpKakaoDto request) {
+    /* 소셜 회원가입용 */
+    public static User toSocialUser(UserRequestDto.SignUpSocialDto request, UserMethod method) {
         Gender gender = request.getGender();
 
         return User.builder()
@@ -113,8 +114,8 @@ public class UserConverter {
                 .birth(request.getBirth())
                 .country(request.getCountry())
                 .gpsConsent(true) // 고정값 설정
-                .method(UserMethod.KAKAO) // 고정값 설정
-                .providerId(request.getProviderId()) // 카카오 providerId
+                .method(method) // KAKAO 또는 APPLE
+                .providerId(request.getProviderId()) // 카카오 또는 애플 providerId
                 .isPublic(true) // 고정값 설정
                 .build();
     }

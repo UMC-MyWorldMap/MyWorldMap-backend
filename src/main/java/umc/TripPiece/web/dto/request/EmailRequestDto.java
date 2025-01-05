@@ -1,8 +1,10 @@
 package umc.TripPiece.web.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import umc.TripPiece.validation.RegexConstants;
 
 public class EmailRequestDto {
 
@@ -12,7 +14,11 @@ public class EmailRequestDto {
     public static class SendCodeDto {
 
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         private String email;
     }
 
@@ -22,7 +28,11 @@ public class EmailRequestDto {
     public static class VerifyCodeDto {
 
         @NotBlank(message = "이메일은 필수 입력 항목입니다.")
-        @Email(message = "유효한 이메일 주소여야 합니다.")
+        @Pattern(
+                regexp = RegexConstants.EMAIL_REGEX,
+                message = "유효한 이메일 주소여야 합니다."
+        )
+        @Schema(example = "trippiece@example.com", description = "유효한 이메일 주소")
         private String email;
 
         @NotBlank(message = "인증 코드는 필수 입력 항목입니다.")

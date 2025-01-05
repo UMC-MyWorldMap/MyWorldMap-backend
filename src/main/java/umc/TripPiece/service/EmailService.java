@@ -11,10 +11,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.UserHandler;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Random;
 
 @Slf4j
@@ -38,27 +38,34 @@ public class EmailService {
         String content;
         try {
             content = getEmailHtmlContent(code);
+            sendEmail(toEmail, subject, content);
         } catch (IOException e) {
-            log.error("Failed to read email template", e);
-            throw new MessagingException("이메일 템플릿을 읽는 중 오류가 발생했습니다.");
+            // 이메일 템플릿 로드 실패
+            throw new UserHandler(ErrorStatus.EMAIL_TEMPLATE_ERROR);
+        } catch (MessagingException e) {
+            // 이메일 전송 실패
+            throw new UserHandler(ErrorStatus.EMAIL_SEND_FAILED);
         }
 
-        sendEmail(toEmail, subject, content);
     }
 
     private String getEmailHtmlContent(String code) throws IOException {
-        ClassPathResource resource = new ClassPathResource("templates/email.html");
-        StringBuilder content = new StringBuilder();
+        try {
+            ClassPathResource resource = new ClassPathResource("templates/email.html");
+            StringBuilder content = new StringBuilder();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
             }
+            // 인증 코드 삽입
+            return content.toString().replace("{code}", code);
+        } catch (IOException e) {
+            // 템플릿 읽기 실패
+            throw new IOException("이메일 템플릿 로드 실패", e);
         }
-
-        // 인증 코드 삽입
-        return content.toString().replace("{code}", code);
     }
 
     public void sendEmail(String toEmail, String title, String content) throws MessagingException {
@@ -70,7 +77,7 @@ public class EmailService {
         try {
             emailSender.send(message);
         } catch (RuntimeException e) {
-            throw new RuntimeException("이메일 전송 불가", e);
+            throw new MessagingException("이메일 전송 실패", e);
         }
     }
 }
