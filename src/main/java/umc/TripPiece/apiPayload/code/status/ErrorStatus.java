@@ -22,6 +22,8 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER404", "해당 유저를 찾을 수 없습니다."),
     NOT_FOUND_CITY(HttpStatus.NOT_FOUND, "CITY404", "해당 도시를 찾을 수 없습니다."),
     NOT_FOUND_TRAVEL(HttpStatus.NOT_FOUND, "TRAVEL404", "해당 여행기를 찾을 수 없습니다."),
+    NOT_FOUND_COUNTRY(HttpStatus.NOT_FOUND, "COUNTRY404", "해당 국가를 찾을 수 없습니다."),
+    NOT_FOUND_CITY_COUNTRY(HttpStatus.NOT_FOUND, "CITY_COUNTRY404", "해당 도시와 국가를 찾을 수 없습니다."),
 
     // s3 관련 오류
     PICTURE_EXTENSION_ERROR(HttpStatus.BAD_REQUEST, "PICTURE400", "이미지의 확장자가 잘못되었습니다."),
@@ -44,6 +46,8 @@ public enum ErrorStatus implements BaseErrorCode {
 
     INVALID_PROFILE_IMAGE(HttpStatus.BAD_REQUEST, "PROFILE400", "잘못된 프로필 이미지 형식입니다."),
     PROFILE_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PROFILE500", "프로필 업데이트에 실패했습니다."),
+  
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "TOKEN401", "유효하지 않은 토큰입니다."),
 
     GENERAL_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "일반 회원가입에 대한 요청입니다."),
     PLATFORM_BAD_REQUEST(HttpStatus.BAD_REQUEST, "SOCIAL400", "유효하지 않은 소셜 플랫폼입니다. (KAKAO 또는 APPLE만 허용)"),
@@ -61,7 +65,18 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_TRIPPIECE_SORT_OPTION(HttpStatus.BAD_REQUEST, "TRIPPIECE401", "유효하지 않은 정렬 조건입니다."),
 
     // 여행기 관련 오류
-    INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유요하지 않은 파라미터입니다.");
+    INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유효하지 않은 파라미터입니다."),
+    TRAVEL_INPROGRESS(HttpStatus.BAD_REQUEST, "TRAVEL400", "현재 진행 중인 여행기가 있습니다."),
+    MISSING_TRAVEL_THUMBNAIL(HttpStatus.BAD_REQUEST,"TRAVEL400","썸네일이 필요합니다."),
+    INVALID_TRAVEL_DATE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행 기간이 유효하지 않습니다."),
+    INVALID_TRAVEL_TITLE(HttpStatus.BAD_REQUEST, "TRAVEL400", "여행기 제목이 유효하지 않습니다."),
+    TRAVEL_COMPLETED(HttpStatus.BAD_REQUEST, "TRAVEL400", "해당 여행은 이미 종료되었습니다."),
+
+    // 요청 정보를 가지고 올 수 없을 때
+    REQUEST_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "REQUEST404", "요청 정보를 가져올 수 없습니다."),
+
+    // 지도 관련 오류
+    INVALID_CITY_COUNTRY_RELATION(HttpStatus.BAD_REQUEST, "MAP400", "유효하지 않은 도시와 국가 관계입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

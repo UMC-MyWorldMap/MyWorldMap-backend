@@ -30,4 +30,17 @@ public class MapResponseDto {
         private String countryName;
         private String cityName;
     }
+
+    @Builder
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class searchDto {
+        private String cityName;
+        private String countryName;
+        private String cityDescription;
+        private String countryImage;
+        private Long logCount;
+        private Long cityId;
+    }
 }

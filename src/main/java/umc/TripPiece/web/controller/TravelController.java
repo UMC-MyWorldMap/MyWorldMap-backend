@@ -6,8 +6,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.GeneralException;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.TripPiece;
@@ -15,6 +19,8 @@ import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.repository.TravelRepository;
 import umc.TripPiece.service.TravelService;
+import umc.TripPiece.validation.annotation.ExistEntity;
+import umc.TripPiece.validation.annotation.ValidateToken;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
@@ -24,6 +30,7 @@ import java.util.regex.Pattern;
 
 @Tag(name = "Travel", description = "여행기 관련 API")
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class TravelController {
 
@@ -32,30 +39,26 @@ public class TravelController {
 
 
     @PostMapping(value = "/mytravels", consumes = "multipart/form-data")
+    @ValidateToken
     @Operation(summary = "여행 생성 API", description = "여행 시작하기")
-    public ResponseEntity<ApiResponse<TravelResponseDto.Create>> createTravel(@Valid @RequestPart("data") TravelRequestDto.Create request, @RequestPart("thumbnail") MultipartFile thumbnail, @RequestHeader("Authorization") String token){
-        String tokenWithoutBearer = token.substring(7);
-        TravelResponseDto.Create response = travelService.createTravel(request, thumbnail, tokenWithoutBearer);
+    public ApiResponse<TravelResponseDto.Create> createTravel(@Valid @RequestPart("data") TravelRequestDto.Create request, @RequestPart("thumbnail") MultipartFile thumbnail){
+        if (thumbnail == null || thumbnail.isEmpty()) {
+            throw new BadRequestHandler(ErrorStatus.MISSING_TRAVEL_THUMBNAIL);
+        }
+        TravelResponseDto.Create response = travelService.createTravel(request, thumbnail);
 
-        if(response == null) {return new ResponseEntity<>(ApiResponse.onFailure("400", "현재 진행 중인 여행기가 있습니다.", null), HttpStatus.BAD_REQUEST);}
-
-        return new ResponseEntity<>(ApiResponse.onSuccess(response), HttpStatus.OK);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return new ResponseEntity<>(ApiResponse.onFailure("400", ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+        return ApiResponse.onSuccess(response);
     }
 
     @PostMapping("/mytravels/end/{travelId}")
     @Operation(summary = "여행 종료 API", description = "여행을 종료하고 요약 정보 반환")
-    public ApiResponse<TravelResponseDto.TripSummaryDto> endTravel(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<TravelResponseDto.TripSummaryDto> endTravel(@PathVariable("travelId") @ExistEntity(entityType = umc.TripPiece.domain.Travel.class) Long travelId) {
         TravelResponseDto.TripSummaryDto response = travelService.endTravel(travelId);
         return ApiResponse.onSuccess(response);
     }
     @GetMapping("/mytravels/continue/{travelId}")
     @Operation(summary = "여행 이어보기 API", description = "여행을 이어볼 날짜별 조각 반환")
-    public ApiResponse<List<TravelResponseDto.TripPieceSummaryDto>> continueTravel(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<List<TravelResponseDto.TripPieceSummaryDto>> continueTravel(@PathVariable("travelId") @ExistEntity(entityType = umc.TripPiece.domain.Travel.class) Long travelId) {
         List<TravelResponseDto.TripPieceSummaryDto> response = travelService.continueTravel(travelId);
         return ApiResponse.onSuccess(response);
     }

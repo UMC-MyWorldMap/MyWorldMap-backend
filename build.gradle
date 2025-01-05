@@ -45,8 +45,9 @@ dependencies {
 	implementation('org.projectlombok:lombok')
 	/* Email 전송 관련 */
     implementation 'org.springframework.boot:spring-boot-starter-mail:3.1.2'
-
     /* 메일 HTML 작성 관련 */
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+	/* AOP 관련 */
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
 }

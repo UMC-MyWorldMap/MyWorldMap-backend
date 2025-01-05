@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.aws.s3.AmazonS3Manager;
 import umc.TripPiece.converter.TravelConverter;
 import umc.TripPiece.converter.TripPieceConverter;
@@ -14,6 +17,7 @@ import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
+import umc.TripPiece.validation.aspect.UserContext;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
@@ -38,21 +42,6 @@ public class TravelService {
     private final UserRepository userRepository;
     private final AmazonS3Manager s3Manager;
     private final JWTUtil jwtUtil;
-
-    public List<Travel> searchByKeyword(String keyword) {
-        List<City> cities = cityRepository.findByNameContainingIgnoreCase(keyword);
-        List<Country> countries = countryRepository.findByNameContainingIgnoreCase(keyword);
-
-        List<Travel> travels = new ArrayList<>();
-
-        if(!cities.isEmpty()) {
-            travels.addAll(cities.stream().flatMap(city -> travelRepository.findByCityId(city.getId()).stream()).toList());
-        }
-        if(!countries.isEmpty()) {
-            travels.addAll(countries.stream().flatMap(country -> travelRepository.findByCity_CountryId(country.getId()).stream()).toList());
-        }
-        return travels;
-    }
 
 
     @Transactional
@@ -203,28 +192,30 @@ public class TravelService {
     }
 
     @Transactional
-    public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail, String token) {
-        if (thumbnail == null || thumbnail.isEmpty()) {
-            throw new IllegalArgumentException("Thumbnail is required.");
-        }
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
+    public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
+        Long userId = UserContext.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+        City city = cityRepository.findByNameIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
+        Country country = countryRepository.findByNameIgnoreCase(request.getCountryName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_COUNTRY));
 
-        City city = cityRepository.findByNameContainingIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new IllegalArgumentException("city not found"));
+        if (!city.getCountry().getId().equals(country.getId())) {
+            throw new BadRequestHandler(ErrorStatus.INVALID_CITY_COUNTRY_RELATION);
+        }
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date.");
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_DATE);
         }
-
         if (request.getTitle().isEmpty()) {
-            throw new IllegalArgumentException("title cannot be null");
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRAVEL_TITLE);
         }
 
         String uuid = UUID.randomUUID().toString();
         String thumbnailUrl = s3Manager.uploadFile("thumbnails/" + uuid, thumbnail);
 
         Travel OngoingTravel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId);
-        if(OngoingTravel != null) return null;
+        if(OngoingTravel != null) {
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS);
+        }
 
         Travel travel = TravelConverter.toTravel(request, city);
         travel.setUser(user);
@@ -237,7 +228,10 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDto.TripSummaryDto endTravel(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId).orElseThrow();
+        if (travel.getStatus() == TravelStatus.COMPLETED) {
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
+        }
         travel.setStatus(TravelStatus.COMPLETED);
 
         City city = travel.getCity();
@@ -251,7 +245,6 @@ public class TravelService {
 
     @Transactional
     public List<TravelResponseDto.TripPieceSummaryDto> continueTravel(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
         List<TripPiece> tripPieces = tripPieceRepository.findByTravelId(travelId);
 
         java.util.Map<LocalDate, List<TripPiece>> tripPiecesByDate = tripPieces.stream()
