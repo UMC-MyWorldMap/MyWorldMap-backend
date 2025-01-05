@@ -36,8 +36,6 @@ public class EmailController {
         try {
             emailService.sendVerificationCode(email, code);
             return ResponseEntity.ok(ApiResponse.onSuccess("해당 이메일로 인증번호를 전송했습니다."));
-        } catch (UserHandler e) {
-            throw e;
         } catch (Exception e) {
             throw new UserHandler(ErrorStatus._INTERNAL_SERVER_ERROR);
         }

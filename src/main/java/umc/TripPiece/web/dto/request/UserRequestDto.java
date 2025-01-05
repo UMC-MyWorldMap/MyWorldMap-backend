@@ -42,12 +42,13 @@ public class UserRequestDto {
         @NotNull(message = "성별은 필수 입력 항목입니다.")
         private Gender gender;
 
+
+        @ValidBirth
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
         @Pattern(
                 regexp = RegexConstants.BIRTH_REGEX,
                 message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
         )
-        @ValidBirth
         private String birth;
 
         @NotBlank(message = "국적은 필수 입력 항목입니다.")
@@ -97,7 +98,7 @@ public class UserRequestDto {
         @NotNull(message = "성별은 필수 입력 항목입니다.")
         private Gender gender;
 
-//        @ValidBirth
+        @ValidBirth
         @NotBlank(message = "생일은 필수 입력 항목입니다.")
         @Pattern(
                 regexp = RegexConstants.BIRTH_REGEX,
@@ -144,11 +145,11 @@ public class UserRequestDto {
 
         private Gender gender;
 
+        @ValidBirth
         @Pattern(
                 regexp = RegexConstants.BIRTH_REGEX,
                 message = "생일은 유효한 날짜여야 하며, YYYY/MM/DD 형식이어야 합니다."
         )
-        @ValidBirth
         private String birth;
 
         @Pattern(
