@@ -37,9 +37,7 @@ public class TravelController {
     private final TravelService travelService;
     private final TravelRepository travelRepository;
 
-
     @PostMapping(value = "/mytravels", consumes = "multipart/form-data")
-//    @ValidateToken
     @Operation(summary = "여행 생성 API", description = "여행 시작하기")
     public ApiResponse<TravelResponseDto.Create> createTravel(@Valid @RequestPart("data") TravelRequestDto.Create request, @RequestPart("thumbnail") MultipartFile thumbnail){
         if (thumbnail == null || thumbnail.isEmpty()) {

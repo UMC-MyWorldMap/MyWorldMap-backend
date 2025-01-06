@@ -26,6 +26,10 @@ public class TokenValidationInterceptor implements HandlerInterceptor {
         }
 
         String tokenWithoutBearer = token.substring(7);
+        // 토큰 유효성 검사
+        if (!jwtUtil.validateToken(tokenWithoutBearer)) {
+            throw new BadRequestHandler(ErrorStatus.INVALID_TOKEN);
+        }
         Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
 
         if (!userRepository.existsById(userId)) {
