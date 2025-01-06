@@ -368,6 +368,12 @@ public class TravelService {
 
     private void initPicturesThumbnail(Travel travel) {
         List<Picture> pictures = getPictures(travel);
+
+        // 사진이 없으면 예외 처리
+        if (pictures.isEmpty()) {
+            throw new BadRequestHandler(ErrorStatus.MISSING_TRAVEL_THUMBNAIL);
+        }
+
         int thumbnailIndex = 1;
 
         // 여행 종료 시 썸네일 랜덤 지정
