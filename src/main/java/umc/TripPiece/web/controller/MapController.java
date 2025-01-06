@@ -15,14 +15,8 @@ import umc.TripPiece.web.dto.request.MapRequestDto;
 
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
 import umc.TripPiece.apiPayload.ApiResponse;
-import umc.TripPiece.converter.MapConverter;
-import umc.TripPiece.service.MapService;
-import umc.TripPiece.validation.annotation.ExistMap;
-import umc.TripPiece.validation.annotation.ExistUser;
-import umc.TripPiece.web.dto.request.MapRequestDto;
 
 import umc.TripPiece.web.dto.response.MapResponseDto;
 import umc.TripPiece.web.dto.response.MapStatsResponseDto;
@@ -56,7 +50,7 @@ public class MapController {
 
     @GetMapping("/stats/{userId}")
     @Operation(summary = "유저별 맵 통계 API", description = "유저별 방문한 나라와 도시 수 반환")
-    public ApiResponse<MapStatsResponseDto> getMapStatsByUserId(@PathVariable(name = "userId") @ExistUser Long userId) {
+    public ApiResponse<MapStatsResponseDto> getMapStatsByUserId(@PathVariable(name = "userId") Long userId) {
         MapStatsResponseDto stats = mapService.getMapStatsByUserId(userId);
         return ApiResponse.onSuccess(stats);
     }
@@ -73,7 +67,7 @@ public class MapController {
     // 맵 색상 수정 엔드포인트
     @PutMapping("/color/{mapId}")
     @Operation(summary = "맵 색상 수정 API", description = "맵의 색상을 수정")
-    public ApiResponse<MapResponseDto> updateMapColor(@PathVariable(name = "mapId") @ExistMap Long mapId, @RequestBody @Valid MapColorDto colorDto) {
+    public ApiResponse<MapResponseDto> updateMapColor(@PathVariable(name = "mapId") Long mapId, @RequestBody @Valid MapColorDto colorDto) {
         MapResponseDto updatedMap = mapService.updateMapColor(mapId, colorDto.getColor());
         return ApiResponse.onSuccess(updatedMap);
     }
@@ -81,7 +75,7 @@ public class MapController {
     // 맵 색상 삭제 엔드포인트
     @DeleteMapping("/color/delete/{mapId}")
     @Operation(summary = "맵 색상 삭제 API", description = "맵의 색상을 삭제")
-    public ApiResponse<Void> deleteMapColor(@PathVariable(name = "mapId") @ExistMap Long mapId) {
+    public ApiResponse<Void> deleteMapColor(@PathVariable(name = "mapId") Long mapId) {
         mapService.deleteMapColor(mapId);
         return ApiResponse.onSuccess(null);
     }
@@ -89,7 +83,7 @@ public class MapController {
     // 여러 색상 선택 엔드포인트
     @PutMapping("/colors/{mapId}")
     @Operation(summary = "맵 여러 색상 선택 API", description = "맵의 색상을 여러 개 선택")
-    public ApiResponse<MapResponseDto> updateMultipleMapColors(@PathVariable(name = "mapId") @ExistMap Long mapId, @RequestBody MapColorsDto colorsDto) {
+    public ApiResponse<MapResponseDto> updateMultipleMapColors(@PathVariable(name = "mapId") Long mapId, @RequestBody MapColorsDto colorsDto) {
         MapResponseDto updatedMap = mapService.updateMultipleMapColors(mapId, colorsDto.getColors());
         return ApiResponse.onSuccess(updatedMap);
     }
