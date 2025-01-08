@@ -13,12 +13,12 @@ public class MapConverter {
     // MapRequestDto -> Map 변환
     public static Map toMap(MapRequestDto requestDto, City city) {
         return new Map(
-                null, // visitId는 자동 생성됨
+                null,
                 requestDto.getUserId(),
                 requestDto.getCountryCode(),
-                requestDto.getColor(),
-                Collections.emptyList(),  // 초기 colors 리스트를 빈 리스트로 설정
-                city  // City 필드 추가
+                requestDto.getColor(), // String 값 그대로 설정
+                Collections.emptyList(),
+                city
         );
     }
 
@@ -28,7 +28,7 @@ public class MapConverter {
                 map.getVisitId(),
                 map.getUserId(),
                 map.getCountryCode(),
-                map.getColor()
+                map.getColor() // String 값 반환
         );
     }
 
@@ -42,7 +42,9 @@ public class MapConverter {
                 .cityName(cityName)
                 .build();
     }
-    public static MapResponseDto.searchDto toSearchDto(City city){
+
+    // 도시 정보를 검색 DTO로 변환
+    public static MapResponseDto.searchDto toSearchDto(City city) {
         return new MapResponseDto.searchDto(
                 city.getName(),
                 city.getCountry().getName(),
