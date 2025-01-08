@@ -7,18 +7,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
 import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
-import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.UserRepository;
-
 import java.io.IOException;
 
 @Component
