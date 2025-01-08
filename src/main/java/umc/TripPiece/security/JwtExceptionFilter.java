@@ -14,7 +14,6 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtExceptionFilter extends OncePerRequestFilter {
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws IOException, ServletException {
         try {

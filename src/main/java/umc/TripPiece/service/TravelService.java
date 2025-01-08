@@ -17,6 +17,7 @@ import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.validation.aspect.UserContext;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
@@ -193,7 +194,7 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
-        Long userId = UserContext.getUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
         City city = cityRepository.findByNameIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
         Country country = countryRepository.findByNameIgnoreCase(request.getCountryName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_COUNTRY));
