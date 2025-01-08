@@ -18,7 +18,6 @@ import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
 import umc.TripPiece.security.SecurityUtils;
-import umc.TripPiece.validation.aspect.UserContext;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
