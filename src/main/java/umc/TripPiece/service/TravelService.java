@@ -258,15 +258,15 @@ public class TravelService {
     }
 
     @Transactional
-    public List<TravelResponseDto.TravelListDto> getTravelList(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TravelResponseDto.TravelListDto> getTravelList() {
+        Long userId = SecurityUtils.getCurrentUserId();
         List<Travel> travels = travelRepository.findByUserId(userId);
         return travels.stream().map(TravelConverter::toTravelListDto).collect(Collectors.toList());
     }
 
     @Transactional
     public TravelResponseDto.TripSummaryDto getTravelDetails(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId).orElseThrow();
         List<TripPiece> tripPieces = tripPieceRepository.findByTravelId(travelId);
         return TravelConverter.toTripSummary(travel, tripPieces);
     }
