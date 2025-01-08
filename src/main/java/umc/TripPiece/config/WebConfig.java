@@ -21,16 +21,15 @@ public class WebConfig implements WebMvcConfigurer {
         converters.add(octetStreamReadMsgConverter);
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tokenValidationInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/swagger-ui/**",
-                        "/api-docs/**",
-                        "/user/signup",
-                        "/user/login"
-                );
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(tokenValidationInterceptor)
+//                .addPathPatterns("/**")
+//                .excludePathPatterns(
+//                        "/swagger-ui/**",
+//                        "/api-docs/**",
+//                        "/user/signup",
+//                        "/user/login"
+//                );
 
     }
-}
