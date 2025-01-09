@@ -17,7 +17,7 @@ import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.TravelStatus;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
-import umc.TripPiece.validation.aspect.UserContext;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.web.dto.request.TravelRequestDto;
 import umc.TripPiece.web.dto.response.TravelResponseDto;
 
@@ -193,7 +193,7 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDto.Create createTravel(TravelRequestDto.Create request, MultipartFile thumbnail) {
-        Long userId = UserContext.getUserId();
+        Long userId = SecurityUtils.getCurrentUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
         City city = cityRepository.findByNameIgnoreCase(request.getCityName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY));
         Country country = countryRepository.findByNameIgnoreCase(request.getCountryName()).stream().findFirst().orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_COUNTRY));
@@ -258,15 +258,15 @@ public class TravelService {
     }
 
     @Transactional
-    public List<TravelResponseDto.TravelListDto> getTravelList(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TravelResponseDto.TravelListDto> getTravelList() {
+        Long userId = SecurityUtils.getCurrentUserId();
         List<Travel> travels = travelRepository.findByUserId(userId);
         return travels.stream().map(TravelConverter::toTravelListDto).collect(Collectors.toList());
     }
 
     @Transactional
     public TravelResponseDto.TripSummaryDto getTravelDetails(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId).orElseThrow();
         List<TripPiece> tripPieces = tripPieceRepository.findByTravelId(travelId);
         return TravelConverter.toTripSummary(travel, tripPieces);
     }

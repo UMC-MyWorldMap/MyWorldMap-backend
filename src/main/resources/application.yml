@@ -34,6 +34,8 @@ spring:
           writetimeout: 5000
 
 springdoc:
+  api-docs:
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger
     groups-order: DESC

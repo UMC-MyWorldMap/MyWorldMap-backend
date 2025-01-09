@@ -171,19 +171,14 @@ public class TravelController {
 
     @GetMapping("/travels")
     @Operation(summary = "생성된 여행기 API", description = "생성된 여행기 리스트 반환")
-    public ResponseEntity<ApiResponse<List<TravelResponseDto.TravelListDto>>> getTravelList(@RequestHeader("Authorization") String token){
-        String tokenWithoutBearer = token.substring(7);
-        List<TravelResponseDto.TravelListDto> travels = travelService.getTravelList(tokenWithoutBearer);
-
-        if (travels.isEmpty()) {
-            return new ResponseEntity<>(ApiResponse.onFailure("400", "생성된 여행기 없음.", null), HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(ApiResponse.onSuccess(travels), HttpStatus.OK);
+    public ApiResponse<List<TravelResponseDto.TravelListDto>> getTravelList(){
+        List<TravelResponseDto.TravelListDto> travels = travelService.getTravelList();
+        return ApiResponse.onSuccess(travels);
     }
 
     @GetMapping("/travels/{travelId}")
     @Operation(summary = "여행기 상세 정보 API", description = "특정 여행기의 상세 정보 반환")
-    public ApiResponse<TravelResponseDto.TripSummaryDto> getTravelDetails(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<TravelResponseDto.TripSummaryDto> getTravelDetails(@PathVariable("travelId") @ExistEntity(entityType = umc.TripPiece.domain.Travel.class) Long travelId) {
         TravelResponseDto.TripSummaryDto response = travelService.getTravelDetails(travelId);
         return ApiResponse.onSuccess(response);
     }
