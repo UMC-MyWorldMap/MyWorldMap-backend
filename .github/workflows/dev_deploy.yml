@@ -35,7 +35,7 @@ jobs:
         with:
           name: "trippiece-fcm.json"
           json: ${{ secrets.FIREBASE_JSON }}
-          dir: 'src/main/resources/firebase/'
+          dir: './src/main/resources/firebase/'
 
       # Gradle 빌드 수행
       - name: Build with Gradle
