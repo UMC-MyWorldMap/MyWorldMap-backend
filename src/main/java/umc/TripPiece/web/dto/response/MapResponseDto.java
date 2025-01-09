@@ -11,7 +11,7 @@ public class MapResponseDto {
     private Long visitId;
     private Long userId;
     private String countryCode;
-    private Color color;
+    private String color; // 변경: String 타입으로 수정
 
     public MapResponseDto(Map map) {
         this.visitId = map.getVisitId();
@@ -24,7 +24,7 @@ public class MapResponseDto {
     @AllArgsConstructor
     @Builder
     public static class getMarkerResponse {
-        private Color color;
+        private String color;
         private String markerImg;
         private String countryCode;
         private String countryName;

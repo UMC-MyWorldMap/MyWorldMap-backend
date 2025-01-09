@@ -17,8 +17,8 @@ public class MapRequestDto {
     @NotBlank
     private String countryCode;
 
-    @NotNull
-    private Color color;
+    @NotBlank
+    private String color; // 변경: String 타입으로 수정
 
-    private Long cityId; // 추가: 선택한 도시 ID
+    private Long cityId;
 }

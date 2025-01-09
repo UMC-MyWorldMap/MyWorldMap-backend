@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import umc.TripPiece.domain.enums.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,18 +29,14 @@ public class Map {
     @Column(name = "country_code", nullable = false)
     private String countryCode;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "color")
-    private Color color;  // 단일 색상
+    private String color; // 변경: String 타입으로 수정하여 요청된 hex 값을 저장 가능
 
-    // 여러 색상을 위한 필드 추가
-    @ElementCollection(targetClass = Color.class)
+    @ElementCollection
     @CollectionTable(name = "map_colors", joinColumns = @JoinColumn(name = "map_id"))
-    @Column(name = "color")
-    @Enumerated(EnumType.STRING)
-    private List<Color> colors = new ArrayList<>();  // 다중 색상
+    @Column(name = "colors")
+    private List<String> colors = new ArrayList<>(); // 다중 색상 처리
 
-    // City와 연관 관계 추가
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
