@@ -29,6 +29,8 @@ jobs:
         shell: bash
 
       # Firebase JSON 생성
+      - name: Create config directory
+        run: mkdir -p ./src/main/resources/firebase/
       - name: create-json
         id: create-json
         uses: jsdaniell/create-json@v1.2.2
