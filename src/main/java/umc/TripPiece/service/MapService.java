@@ -103,6 +103,33 @@ public class MapService {
         );
     }
 
+    // 방문한 나라 누적 정보 반환
+    public List<String> getVisitedCountries(Long userId) {
+        return mapRepository.findDistinctCountryCodesByUserId(userId);
+    }
+
+    public long getVisitedCountryCount(Long userId) {
+        return mapRepository.countDistinctCountryCodeByUserId(userId);
+    }
+
+    // 방문한 나라 누적 정보와 프로필 통합 반환
+    public MapStatsResponseDto getVisitedCountriesWithProfile(Long userId) {
+        List<String> visitedCountries = getVisitedCountries(userId);
+        long visitedCountryCount = getVisitedCountryCount(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        return new MapStatsResponseDto(
+                visitedCountryCount,
+                visitedCountries.size(),
+                visitedCountries,
+                Collections.emptyList(), // 도시 ID 리스트는 필요 시 추가
+                user.getProfileImg(),
+                user.getNickname()
+        );
+    }
+
     // 도시 및 국가 검색
     public List<MapResponseDto.searchDto> searchCitiesCountry(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {

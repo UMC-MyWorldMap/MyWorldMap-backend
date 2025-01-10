@@ -88,14 +88,27 @@ public class MapController {
         return ApiResponse.onSuccess(updatedMap);
     }
 
+    @GetMapping("/{userId}/visited-countries")
+    @Operation(summary = "방문한 나라 누적 API", description = "사용자가 방문한 나라의 리스트와 카운트를 반환")
+    public ApiResponse<MapStatsResponseDto> getVisitedCountries(@PathVariable(name = "userId") Long userId) {
+        List<String> countryCodes = mapService.getVisitedCountries(userId);
+        long countryCount = mapService.getVisitedCountryCount(userId);
+
+        MapStatsResponseDto response = MapStatsResponseDto.builder()
+                .countryCodes(countryCodes)
+                .countryCount(countryCount)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @GetMapping("/search")
     @Operation(summary = "도시, 국가 검색 API", description = "도시, 국가 검색")
-    public ApiResponse<List<MapResponseDto.searchDto>> searchCities(@RequestParam String keyword){
+    public ApiResponse<List<MapResponseDto.searchDto>> searchCities(@RequestParam String keyword) {
         List<MapResponseDto.searchDto> result = mapService.searchCitiesCountry(keyword);
         if (result.isEmpty()) {
             throw new NotFoundHandler(ErrorStatus.NOT_FOUND_CITY_COUNTRY);
-        }
-        else {
+        } else {
             return ApiResponse.onSuccess(result);
         }
     }
