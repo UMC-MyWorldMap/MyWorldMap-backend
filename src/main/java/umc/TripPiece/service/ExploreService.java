@@ -31,8 +31,8 @@ public class ExploreService {
 
     @Transactional
     public List<ExploreResponseDto.ExploreListDto> searchTravels(String query, String sort){
-        List<City> cities = cityRepository.findByNameIgnoreCase(query);
-        List<Country> countries = countryRepository.findByNameIgnoreCase(query);
+        List<City> cities = cityRepository.findCitiesInSearch(query);
+        List<Country> countries = countryRepository.findCountriesInSearch(query);
         Set<Long> cityIds = new HashSet<>();
         cities.forEach(city -> cityIds.add(city.getId()));
 

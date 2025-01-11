@@ -25,7 +25,7 @@ public class ExploreController {
     private final ExploreService exploreService;
     @GetMapping("/search")
     @Operation(summary = "도시, 국가 검색 API", description = "도시, 국가 검색")
-    public ApiResponse<List<ExploreResponseDto.ExploreListDto>> getSearchedTravelList(@RequestParam String query, @RequestParam(defaultValue = "latest") String sort) {
+    public ApiResponse<List<ExploreResponseDto.ExploreListDto>> getSearchedTravelList(@RequestParam(name = "query") String query, @RequestParam(name = "sort", defaultValue = "latest") String sort) {
         List<ExploreResponseDto.ExploreListDto> travels;
         if ("latest".equals(sort) || "oldest".equals(sort)) {
             travels = exploreService.searchTravels(query, sort);
