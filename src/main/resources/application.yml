@@ -33,15 +33,6 @@ spring:
           connectiontimeout: 5000
           writetimeout: 5000
 
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger
-    groups-order: DESC
-    tags-sorter: alpha
-    operations-sorter: method
-
 cloud:
   aws:
     s3:
