@@ -64,7 +64,6 @@ public class MapController {
         return ApiResponse.onSuccess(markers);
     }
 
-    // 맵 색상 수정 엔드포인트
     @PutMapping("/color/{mapId}")
     @Operation(summary = "맵 색상 수정 API", description = "맵의 색상을 수정")
     public ApiResponse<MapResponseDto> updateMapColor(@PathVariable(name = "mapId") Long mapId, @RequestBody @Valid MapColorDto colorDto) {
@@ -72,7 +71,6 @@ public class MapController {
         return ApiResponse.onSuccess(updatedMap);
     }
 
-    // 맵 색상 삭제 엔드포인트
     @DeleteMapping("/color/delete/{mapId}")
     @Operation(summary = "맵 색상 삭제 API", description = "맵의 색상을 삭제")
     public ApiResponse<Void> deleteMapColor(@PathVariable(name = "mapId") Long mapId) {
@@ -80,7 +78,6 @@ public class MapController {
         return ApiResponse.onSuccess(null);
     }
 
-    // 여러 색상 선택 엔드포인트
     @PutMapping("/colors/{mapId}")
     @Operation(summary = "맵 여러 색상 선택 API", description = "맵의 색상을 여러 개 선택")
     public ApiResponse<MapResponseDto> updateMultipleMapColors(@PathVariable(name = "mapId") Long mapId, @RequestBody MapColorsDto colorsDto) {
@@ -91,14 +88,7 @@ public class MapController {
     @GetMapping("/{userId}/visited-countries")
     @Operation(summary = "방문한 나라 누적 API", description = "사용자가 방문한 나라의 리스트와 카운트를 반환")
     public ApiResponse<MapStatsResponseDto> getVisitedCountries(@PathVariable(name = "userId") Long userId) {
-        List<String> countryCodes = mapService.getVisitedCountries(userId);
-        long countryCount = mapService.getVisitedCountryCount(userId);
-
-        MapStatsResponseDto response = MapStatsResponseDto.builder()
-                .countryCodes(countryCodes)
-                .countryCount(countryCount)
-                .build();
-
+        MapStatsResponseDto response = mapService.getVisitedCountriesWithProfile(userId);
         return ApiResponse.onSuccess(response);
     }
 
