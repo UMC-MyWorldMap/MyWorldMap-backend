@@ -32,11 +32,12 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 이모지 오류
     EMOJI_NUMBER_ERROR(HttpStatus.BAD_REQUEST, "EMOJI400", "이모지의 갯수는 4개이여야 합니다."),
-    EMOJI_INPUT_ERROR(HttpStatus.BAD_REQUEST, "EMOJI401", "이모지가 아닌 입력이 있습니다."),
+    EMOJI_INPUT_ERROR(HttpStatus.BAD_REQUEST, "EMOJI400", "이모지가 아닌 입력이 있습니다."),
 
     // 글자 수 오류
     TEXT_LENGTH_30_ERROR(HttpStatus.BAD_REQUEST, "TEXT400", "글자 수가 30자를 초과하였습니다."),
-    TEXT_LENGTH_100_ERROR(HttpStatus.BAD_REQUEST, "TEXT401", "글자 수가 100자를 초과하였습니다."),
+    TEXT_LENGTH_100_ERROR(HttpStatus.BAD_REQUEST, "TEXT400", "글자 수가 100자를 초과하였습니다."),
+    TEXT_LENGTH_150_ERROR(HttpStatus.BAD_REQUEST, "TEXT400", "글자 수가 150자를 초과하였습니다."),
 
     // 사용자 관련 오류
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER401", "비밀번호가 일치하지 않습니다."),
@@ -63,6 +64,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // 여행 조각 관련 오류
     NOT_FOUND_TRIPPIECE(HttpStatus.NOT_FOUND, "TRIPPIECE404", "여행 조각이 존재하지 않습니다"),
     INVALID_TRIPPIECE_SORT_OPTION(HttpStatus.BAD_REQUEST, "TRIPPIECE401", "유효하지 않은 정렬 조건입니다."),
+    INVALID_TRIPPIECE_CATEGORY(HttpStatus.BAD_REQUEST, "TRIPPIECE400", "올바르지 않은 카테고리입니다."),
 
     // 여행기 관련 오류
     INVALID_TRAVEL_PARARM(HttpStatus.BAD_REQUEST, "TRAVEL400", "유효하지 않은 파라미터입니다."),
