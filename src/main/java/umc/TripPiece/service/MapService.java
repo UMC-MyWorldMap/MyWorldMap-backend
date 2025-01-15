@@ -3,15 +3,15 @@ package umc.TripPiece.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.converter.MapConverter;
 import umc.TripPiece.domain.City;
 import umc.TripPiece.domain.Country;
 import umc.TripPiece.domain.Map;
-import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.User;
-import umc.TripPiece.domain.enums.Color;
-import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.*;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.web.dto.request.MapRequestDto;
 import umc.TripPiece.web.dto.response.MapResponseDto;
 import umc.TripPiece.web.dto.response.MapStatsResponseDto;
@@ -28,12 +28,13 @@ public class MapService {
 
     private final MapRepository mapRepository;
     private final CityRepository cityRepository;
-    private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
     private final CountryRepository countryRepository;
 
     // 유저별 맵 리스트를 조회
-    public List<MapResponseDto> getMapsByUserId(Long userId) {
+    public List<MapResponseDto> getMapsByUserId() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         return mapRepository.findByUserId(userId).stream()
                 .map(MapConverter::toMapResponseDto)
                 .collect(Collectors.toList());
@@ -43,7 +44,7 @@ public class MapService {
     @Transactional
     public MapResponseDto createMapWithCity(MapRequestDto requestDto) {
         City city = cityRepository.findById(requestDto.getCityId())
-                .orElseThrow(() -> new IllegalArgumentException("City not found with id: " + requestDto.getCityId()));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_MAP));
 
         Map map = MapConverter.toMap(requestDto, city);
         Map savedMap = mapRepository.save(map);
@@ -54,7 +55,7 @@ public class MapService {
     @Transactional
     public MapResponseDto updateMapColor(Long mapId, String newColor) {
         Map map = mapRepository.findById(mapId)
-                .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_MAP));
 
         map.setColor(newColor); // 요청된 hex 값을 설정
         Map updatedMap = mapRepository.save(map);
@@ -65,7 +66,7 @@ public class MapService {
     @Transactional
     public void deleteMapColor(Long mapId) {
         Map map = mapRepository.findById(mapId)
-                .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_MAP));
 
         map.setColor(null); // 색상 삭제
         mapRepository.save(map);
@@ -75,7 +76,7 @@ public class MapService {
     @Transactional
     public MapResponseDto updateMultipleMapColors(Long mapId, List<String> colorStrings) {
         Map map = mapRepository.findById(mapId)
-                .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_MAP));
 
         map.setColors(colorStrings); // 다중 색상 설정
         Map updatedMap = mapRepository.save(map);
@@ -83,7 +84,9 @@ public class MapService {
     }
 
     // 유저별 방문한 나라와 도시 통계 반환
-    public MapStatsResponseDto getMapStatsByUserId(Long userId) {
+    public MapStatsResponseDto getMapStatsByUserId() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         long countryCount = mapRepository.countDistinctCountryCodeByUserId(userId);
         long cityCount = mapRepository.countDistinctCityByUserId(userId);
 
@@ -91,7 +94,7 @@ public class MapService {
         List<Long> cityIds = mapRepository.findDistinctCityIdsByUserId(userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
 
         return new MapStatsResponseDto(
                 countryCount,
@@ -104,21 +107,27 @@ public class MapService {
     }
 
     // 방문한 나라 누적 정보 반환
-    public List<String> getVisitedCountries(Long userId) {
+    private List<String> getVisitedCountries() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         return mapRepository.findDistinctCountryCodesByUserId(userId);
     }
 
-    public long getVisitedCountryCount(Long userId) {
+    private Long getVisitedCountryCount() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         return mapRepository.countDistinctCountryCodeByUserId(userId);
     }
 
     // 방문한 나라 누적 정보와 프로필 통합 반환
-    public MapStatsResponseDto getVisitedCountriesWithProfile(Long userId) {
-        List<String> visitedCountries = getVisitedCountries(userId);
-        long visitedCountryCount = getVisitedCountryCount(userId);
+    public MapStatsResponseDto getVisitedCountriesWithProfile() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
+        List<String> visitedCountries = getVisitedCountries();
+        Long visitedCountryCount = getVisitedCountryCount();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
 
         return new MapStatsResponseDto(
                 visitedCountryCount,
@@ -156,8 +165,8 @@ public class MapService {
     }
 
     // 마커 반환
-    public List<MapResponseDto.getMarkerResponse> getMarkers(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<MapResponseDto.getMarkerResponse> getMarkers() {
+        Long userId = SecurityUtils.getCurrentUserId();
         List<Map> maps = mapRepository.findByUserId(userId);
 
         return maps.stream()
