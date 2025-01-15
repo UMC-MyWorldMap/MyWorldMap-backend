@@ -22,6 +22,7 @@ import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.domain.jwt.JWTUtil;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.service.UserService;
 import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
@@ -143,18 +144,10 @@ public class UserController {
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = "로그아웃")
-    public ApiResponse<String> logout(@RequestHeader("Authorization") String token) {
-        if (!token.startsWith("Bearer ")) {
-            return ApiResponse.onFailure("400", "유효하지 않은 토큰 형식입니다.", null);
-        }
+    public ApiResponse<String> logout() {
 
-        String tokenWithoutBearer = token.substring(7);
         try {
-            Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
-            if (userId == null) {
-                return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
-            }
-            userService.logout(userId);
+            userService.logout();
             return ApiResponse.onSuccess("로그아웃에 성공했습니다.");
         } catch (Exception e) {
             return ApiResponse.onFailure("400", e.getMessage(), null);
@@ -163,18 +156,9 @@ public class UserController {
 
     @DeleteMapping("/withdrawal")
     @Operation(summary = "회원탈퇴 API", description = "회원탈퇴")
-    public ApiResponse<String> withdrawal(@RequestHeader("Authorization") String token) {
-        if (!token.startsWith("Bearer ")) {
-            return ApiResponse.onFailure("400", "유효하지 않은 토큰 형식입니다.", null);
-        }
-
-        String tokenWithoutBearer = token.substring(7);
+    public ApiResponse<String> withdrawal() {
         try {
-            Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
-            if (userId == null) {
-                return ApiResponse.onFailure("400", "존재하지 않거나 만료된 토큰입니다.", null);
-            }
-            userService.withdrawal(userId);
+            userService.withdrawal();
             return ApiResponse.onSuccess("회원탈퇴에 성공했습니다.");
         } catch (Exception e) {
             return ApiResponse.onFailure("400", e.getMessage(), null);
@@ -185,11 +169,9 @@ public class UserController {
     @Operation(summary = "프로필 수정하기 API", description = "프로필 수정하기")
     public ApiResponse<UserResponseDto.UpdateResultDto> update(
             @RequestPart("info") @Valid UserRequestDto.UpdateDto request,
-            @RequestHeader("Authorization") String token,
             @RequestPart(value = "profileImg", required = false) MultipartFile profileImg) {
         try {
-            String tokenWithoutBearer = token.substring(7);
-            User user = userService.update(request, tokenWithoutBearer, profileImg);
+            User user = userService.update(request, profileImg);
             return ApiResponse.onSuccess(UserConverter.toUpdateResultDto(user));
         } catch (GeneralException e) {
             throw e;
@@ -200,8 +182,7 @@ public class UserController {
 
     @GetMapping("/myprofile")
     @Operation(summary = "프로필 조회 API", description = "마이페이지 프로필 조회")
-    public ApiResponse<UserResponseDto.ProfileDto> getProfile(@RequestHeader("Authorization") String token) {
-        String tokenWithoutBearer = token.substring(7);
-        return ApiResponse.onSuccess(userService.getProfile(tokenWithoutBearer));
+    public ApiResponse<UserResponseDto.ProfileDto> getProfile() {
+        return ApiResponse.onSuccess(userService.getProfile());
     }
 }
