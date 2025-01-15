@@ -1,9 +1,12 @@
 package umc.TripPiece.service;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.ApiResponse;
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
 import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
 import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
@@ -45,56 +48,109 @@ public class TravelService {
 
 
     @Transactional
-    public TripPiece createMemo(Long travelId, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+    public TripPiece createMemo(Long travelId, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId).
+                orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 완료된 여행기 예외 처리
+        if(travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
+
+        // 메모 150자 예외 처리
+        if(request.getDescription().length() > 150)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_150_ERROR);
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
+
+        newTripPiece.setTravel(travel);
         newTripPiece.setCategory(Category.MEMO);
 
-        Travel travel = travelRepository.findById(travelId).get();
+        // 여행기의 메모 조각 갯수 증가
         travel.setMemoNum(travel.getMemoNum()+1);
 
         return tripPieceRepository.save(newTripPiece);
     }
 
     @Transactional
-    public TripPiece createEmoji(Long travelId, List<String> emojis, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+    public TripPiece createEmoji(Long travelId, List<String> emojis, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 메모 검증
+        if (request.getDescription().length() > 100)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_100_ERROR);
+
+        // 완료된 여행기 예외 처리
+        if(travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
+
+        // 이모지 개수 검증
+        if (emojis.size() != 4)
+            throw new BadRequestHandler(ErrorStatus.EMOJI_NUMBER_ERROR);
+
+        // 이모지 정규식 검증
+        for (String emoji : emojis) {
+            Pattern rex = Pattern.compile("[\\x{10000}-\\x{10ffff}\ud800-\udfff]");
+            Matcher rexMatcher = rex.matcher(emoji);
+
+            if (!rexMatcher.find())
+                throw new BadRequestHandler(ErrorStatus.EMOJI_INPUT_ERROR);
+        }
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
-        newTripPiece.setCategory(Category.EMOJI);
 
-        Travel travel = travelRepository.findById(travelId).get();
-        travel.setMemoNum(travel.getMemoNum()+1);
-
-        for(String emoji : emojis) {
+        // 이모지 생성
+        for (String emoji : emojis) {
             Emoji newEmoji = TripPieceConverter.toTripPieceEmoji(emoji, newTripPiece);
             emojiRepository.save(newEmoji);
         }
 
+        newTripPiece.setTravel(travel);
+        newTripPiece.setCategory(Category.EMOJI);
+
+        travel.setMemoNum(travel.getMemoNum() + 1);
+
         return tripPieceRepository.save(newTripPiece);
     }
 
     @Transactional
-    public TripPiece createPicture(Long travelId, List<MultipartFile> pictures, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+    public TripPiece createPicture(Long travelId, List<MultipartFile> pictures, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 메모 검증
+        if (request.getDescription().length() > 100)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_100_ERROR);
+
+        // 완료된 여행기 예외 처리
+        if (travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
+
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
+
+        newTripPiece.setTravel(travel);
         newTripPiece.setCategory(Category.PICTURE);
 
-        Travel travel = travelRepository.findById(travelId).get();
         travel.setPictureNum(travel.getPictureNum()+1);
 
         int pictureNum = pictures.size();
 
         List<Uuid> uuids = new ArrayList<>();
 
+        // UUID 생성
         for(int i = 0; i < pictureNum; i++) {
             String uuid = UUID.randomUUID().toString();
             Uuid savedUuid = uuidRepository.save(Uuid.builder()
@@ -102,6 +158,7 @@ public class TravelService {
             uuids.add(savedUuid);
         }
 
+        // 사진 URL 저장
         List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), pictures);
 
         for(int i = 0; i < pictureNum; i++) {
@@ -110,25 +167,37 @@ public class TravelService {
         }
 
         return tripPieceRepository.save(newTripPiece);
-
     }
 
     @Transactional
-    public TripPiece createSelfie(Long travelId, MultipartFile picture, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+    public TripPiece createSelfie(Long travelId, MultipartFile picture, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 메모 검증
+        if (request.getDescription().length() > 100)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_100_ERROR);
+
+        // 완료된 여행기 예외 처리
+        if (travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
+        newTripPiece.setTravel(travel);
         newTripPiece.setCategory(Category.SELFIE);
 
-        Travel travel = travelRepository.findById(travelId).get();
         travel.setPictureNum(travel.getPictureNum()+1);
 
+        // UUID 생성
         String uuid = UUID.randomUUID().toString();
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
+        // 사진 업로드
         String pictureUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), picture);
 
         Picture newPicture = TripPieceConverter.toTripPiecePicture(pictureUrl, newTripPiece);
@@ -136,25 +205,37 @@ public class TravelService {
         pictureRepository.save(newPicture);
 
         return tripPieceRepository.save(newTripPiece);
-
     }
 
     @Transactional
-    public TripPiece createVideo(Long travelId, MultipartFile video, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));;
+    public TripPiece createVideo(Long travelId, MultipartFile video, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 메모 검증
+        if (request.getDescription().length() > 100)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_100_ERROR);
+
+        // 완료된 여행기 예외 처리
+        if (travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
+        newTripPiece.setTravel(travel);
         newTripPiece.setCategory(Category.VIDEO);
 
-        Travel travel = travelRepository.findById(travelId).get();
         travel.setVideoNum(travel.getVideoNum()+1);
 
+        // UUID 생성
         String uuid = UUID.randomUUID().toString();
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
+        // 영상 저장
         String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, newTripPiece);
@@ -166,21 +247,34 @@ public class TravelService {
     }
 
     @Transactional
-    public TripPiece createWhere(Long travelId, MultipartFile video, TravelRequestDto.MemoDto request, String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user not found"));
+    public TripPiece createWhere(Long travelId, MultipartFile video, TravelRequestDto.MemoDto request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
+
+        // 메모 검증
+        if (request.getDescription().length() > 100)
+            throw new BadRequestHandler(ErrorStatus.TEXT_LENGTH_100_ERROR);
+
+        // 완료된 여행기 예외 처리
+        if (travel.getStatus() == TravelStatus.COMPLETED)
+            throw new BadRequestHandler(ErrorStatus.TRAVEL_COMPLETED);
 
         TripPiece newTripPiece = TravelConverter.toTripPieceMemo(request, user);
-        newTripPiece.setTravel(travelRepository.findById(travelId).get());
+        newTripPiece.setTravel(travel);
         newTripPiece.setCategory(Category.WHERE);
 
-        Travel travel = travelRepository.findById(travelId).get();
         travel.setVideoNum(travel.getVideoNum()+1);
 
+        // UUID 생성
         String uuid = UUID.randomUUID().toString();
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
+        // 영상 저장
         String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, newTripPiece);
@@ -212,10 +306,8 @@ public class TravelService {
         String uuid = UUID.randomUUID().toString();
         String thumbnailUrl = s3Manager.uploadFile("thumbnails/" + uuid, thumbnail);
 
-        Travel OngoingTravel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId);
-        if(OngoingTravel != null) {
-            throw new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS);
-        }
+        Travel OngoingTravel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId)
+                .orElseThrow(() -> new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS));
 
         Travel travel = TravelConverter.toTravel(request, city);
         travel.setUser(user);
@@ -272,10 +364,14 @@ public class TravelService {
     }
 
     @Transactional
-    public TravelResponseDto.getOngoingTravelResultDto getOngoingTravel(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
-        Travel travel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId);
+    public TravelResponseDto.getOngoingTravelResultDto getOngoingTravel() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_USER));
+
+        Travel travel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId)
+                .orElseThrow(() -> new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS));
+
         City city = travel.getCity();
         Country country = city.getCountry();
 
@@ -287,13 +383,13 @@ public class TravelService {
         LocalDateTime today = LocalDateTime.now();
         Long dayCount = ChronoUnit.DAYS.between(startDate, today);
 
-
         return TravelConverter.toOngoingTravelResultDto(travel, nickname, profileImg, countryName, dayCount);
     }
 
     @Transactional
     public List<TravelResponseDto.UpdatablePictureDto> getPictureResponses(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
 
         return getPictures(travel).stream()
                 .map(TravelConverter::toUpdatablePictureDto)
@@ -302,7 +398,8 @@ public class TravelService {
 
     @Transactional
     public List<TravelResponseDto.UpdatablePictureDto> getThumbnailPictures(Long travelId) {
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
+        Travel travel = travelRepository.findById(travelId)
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRAVEL));
 
         // index 순으로 List 반환
         return getPictures(travel).stream()
