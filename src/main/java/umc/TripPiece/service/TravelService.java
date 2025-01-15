@@ -159,7 +159,7 @@ public class TravelService {
         }
 
         // 사진 URL 저장
-        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), pictures);
+        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), pictures, Category.PICTURE);
 
         for(int i = 0; i < pictureNum; i++) {
             Picture newPicture = TripPieceConverter.toTripPiecePicture(pictureUrls.get(i), newTripPiece);
@@ -198,7 +198,7 @@ public class TravelService {
                 .uuid(uuid).build());
 
         // 사진 업로드
-        String pictureUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), picture);
+        String pictureUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), picture, Category.PICTURE);
 
         Picture newPicture = TripPieceConverter.toTripPiecePicture(pictureUrl, newTripPiece);
 
@@ -236,7 +236,7 @@ public class TravelService {
                 .uuid(uuid).build());
 
         // 영상 저장
-        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video);
+        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video, Category.VIDEO);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, newTripPiece);
 
@@ -275,7 +275,7 @@ public class TravelService {
                 .uuid(uuid).build());
 
         // 영상 저장
-        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video);
+        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), video, Category.VIDEO);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, newTripPiece);
 
@@ -304,7 +304,7 @@ public class TravelService {
         }
 
         String uuid = UUID.randomUUID().toString();
-        String thumbnailUrl = s3Manager.uploadFile("thumbnails/" + uuid, thumbnail);
+        String thumbnailUrl = s3Manager.uploadFile("thumbnails/" + uuid, thumbnail, Category.PICTURE);
 
         Travel OngoingTravel = travelRepository.findByStatusAndUserId(TravelStatus.ONGOING, userId)
                 .orElseThrow(() -> new BadRequestHandler(ErrorStatus.TRAVEL_INPROGRESS));

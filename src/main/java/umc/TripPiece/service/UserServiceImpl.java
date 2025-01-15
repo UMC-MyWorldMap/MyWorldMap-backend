@@ -15,6 +15,7 @@ import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.Uuid;
+import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.TravelRepository;
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService{
         if(profileImg == null) {
             profileImgUrl = null;
         } else {
-            profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+            profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
         }
         newUser.setProfileImg(profileImgUrl);
 
@@ -87,7 +88,7 @@ public class UserServiceImpl implements UserService{
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
-        String profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+        String profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
 
         // providerId 중복 확인
         userRepository.findByProviderId(request.getProviderId()).ifPresent(user -> {
@@ -263,7 +264,7 @@ public class UserServiceImpl implements UserService{
                 throw new UserHandler(ErrorStatus.PAYLOAD_TOO_LARGE);
             }
             try {
-                profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+                profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
             } catch (Exception e) {
                 throw new UserHandler(ErrorStatus.INVALID_PROFILE_IMAGE);
             }

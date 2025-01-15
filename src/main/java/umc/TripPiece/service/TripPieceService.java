@@ -309,7 +309,7 @@ public class TripPieceService {
             uuids.add(savedUuid);
         }
 
-        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), files);
+        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), files, Category.PICTURE);
         List<Picture> newPictures = new ArrayList<>();
 
         for(int i = 0; i < pictureNum; i++) {
@@ -346,7 +346,7 @@ public class TripPieceService {
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
             .uuid(uuid).build());
 
-        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), file);
+        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), file, Category.VIDEO);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, tripPiece);
 
