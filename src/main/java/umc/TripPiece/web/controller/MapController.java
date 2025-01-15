@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import umc.TripPiece.apiPayload.code.status.ErrorStatus;
 import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
+import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.service.MapService;
 import umc.TripPiece.validation.annotation.ExistEntity;
 import umc.TripPiece.web.dto.request.MapRequestDto;
-
 
 import org.springframework.validation.annotation.Validated;
 
@@ -33,6 +33,7 @@ import java.util.List;
 public class MapController {
 
     private final MapService mapService;
+    private final JWTUtil jwtUtil; // 추가: jwtUtil 객체 주입
 
     @GetMapping("/{userId}")
     @Operation(summary = "유저별 맵 불러오기 API", description = "유저별 맵 리스트 반환")
@@ -85,9 +86,29 @@ public class MapController {
         return ApiResponse.onSuccess(updatedMap);
     }
 
-    @GetMapping("/{userId}/visited-countries")
+    @PutMapping("/color")
+    @Operation(summary = "맵 색상 수정 (기존 정보 기반)", description = "맵의 색상을 수정 (userId, countryCode, cityId 기반)")
+    public ApiResponse<MapResponseDto> updateMapColorWithInfo(@RequestHeader("Authorization") String token,
+                                                              @RequestBody @Valid MapRequestDto requestDto) {
+        Long userId = jwtUtil.getUserIdFromToken(token.substring(7)); // Bearer 제거
+        MapResponseDto updatedMap = mapService.updateMapColorWithInfo(userId, requestDto.getCountryCode(), requestDto.getCityId(), requestDto.getColor());
+        return ApiResponse.onSuccess(updatedMap);
+    }
+
+    @DeleteMapping("/color")
+    @Operation(summary = "맵 삭제 (기존 정보 기반)", description = "맵을 삭제 (userId, countryCode, cityId 기반)")
+    public ApiResponse<Void> deleteMapWithInfo(@RequestHeader("Authorization") String token,
+                                               @RequestBody @Valid MapRequestDto requestDto) {
+        Long userId = jwtUtil.getUserIdFromToken(token.substring(7)); // Bearer 제거
+        mapService.deleteMapWithInfo(userId, requestDto.getCountryCode(), requestDto.getCityId());
+        return ApiResponse.onSuccess(null);
+    }
+
+    @GetMapping("/visited-countries")
     @Operation(summary = "방문한 나라 누적 API", description = "사용자가 방문한 나라의 리스트와 카운트를 반환")
-    public ApiResponse<MapStatsResponseDto> getVisitedCountries(@PathVariable(name = "userId") Long userId) {
+    public ApiResponse<MapStatsResponseDto> getVisitedCountries(@RequestHeader("Authorization") String token) {
+        String tokenWithoutBearer = token.substring(7); // Bearer 제거
+        Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
         MapStatsResponseDto response = mapService.getVisitedCountriesWithProfile(userId);
         return ApiResponse.onSuccess(response);
     }
