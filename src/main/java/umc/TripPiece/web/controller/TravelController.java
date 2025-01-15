@@ -92,10 +92,6 @@ public class TravelController {
             @PathVariable("travelId") Long travelId,
             @RequestPart("photos") List<MultipartFile> photos){
 
-
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
         TripPiece tripPiece = travelService.createPicture(travelId, photos, request);
 
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
