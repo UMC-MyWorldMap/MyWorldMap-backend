@@ -32,14 +32,12 @@ public class MapService {
     private final UserRepository userRepository;
     private final CountryRepository countryRepository;
 
-    // 유저별 맵 리스트를 조회
     public List<MapResponseDto> getMapsByUserId(Long userId) {
         return mapRepository.findByUserId(userId).stream()
                 .map(MapConverter::toMapResponseDto)
                 .collect(Collectors.toList());
     }
 
-    // 맵 생성 시 도시 정보 포함
     @Transactional
     public MapResponseDto createMapWithCity(MapRequestDto requestDto) {
         City city = cityRepository.findById(requestDto.getCityId())
@@ -50,39 +48,53 @@ public class MapService {
         return MapConverter.toMapResponseDto(savedMap);
     }
 
-    // 맵 색상 수정
     @Transactional
     public MapResponseDto updateMapColor(Long mapId, String newColor) {
         Map map = mapRepository.findById(mapId)
                 .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
 
-        map.setColor(newColor); // 요청된 hex 값을 설정
+        map.setColor(newColor);
         Map updatedMap = mapRepository.save(map);
         return MapConverter.toMapResponseDto(updatedMap);
     }
 
-    // 맵 색상 삭제
+    @Transactional
+    public MapResponseDto updateMapColorWithInfo(Long userId, String countryCode, Long cityId, String newColor) {
+        Map map = mapRepository.findByUserIdAndCountryCodeAndCityId(userId, countryCode, cityId)
+                .orElseThrow(() -> new IllegalArgumentException("Map not found with provided info."));
+
+        map.setColor(newColor);
+        Map updatedMap = mapRepository.save(map);
+        return MapConverter.toMapResponseDto(updatedMap);
+    }
+
     @Transactional
     public void deleteMapColor(Long mapId) {
         Map map = mapRepository.findById(mapId)
                 .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
 
-        map.setColor(null); // 색상 삭제
+        map.setColor(null);
         mapRepository.save(map);
     }
 
-    // 여러 색상 선택 업데이트
+    @Transactional
+    public void deleteMapWithInfo(Long userId, String countryCode, Long cityId) {
+        Map map = mapRepository.findByUserIdAndCountryCodeAndCityId(userId, countryCode, cityId)
+                .orElseThrow(() -> new IllegalArgumentException("Map not found with provided info."));
+
+        mapRepository.delete(map);
+    }
+
     @Transactional
     public MapResponseDto updateMultipleMapColors(Long mapId, List<String> colorStrings) {
         Map map = mapRepository.findById(mapId)
                 .orElseThrow(() -> new IllegalArgumentException("Map not found with id: " + mapId));
 
-        map.setColors(colorStrings); // 다중 색상 설정
+        map.setColors(colorStrings);
         Map updatedMap = mapRepository.save(map);
         return MapConverter.toMapResponseDto(updatedMap);
     }
 
-    // 유저별 방문한 나라와 도시 통계 반환
     public MapStatsResponseDto getMapStatsByUserId(Long userId) {
         long countryCount = mapRepository.countDistinctCountryCodeByUserId(userId);
         long cityCount = mapRepository.countDistinctCityByUserId(userId);
@@ -103,7 +115,6 @@ public class MapService {
         );
     }
 
-    // 방문한 나라 누적 정보 반환
     public List<String> getVisitedCountries(Long userId) {
         return mapRepository.findDistinctCountryCodesByUserId(userId);
     }
@@ -112,7 +123,6 @@ public class MapService {
         return mapRepository.countDistinctCountryCodeByUserId(userId);
     }
 
-    // 방문한 나라 누적 정보와 프로필 통합 반환
     public MapStatsResponseDto getVisitedCountriesWithProfile(Long userId) {
         List<String> visitedCountries = getVisitedCountries(userId);
         long visitedCountryCount = getVisitedCountryCount(userId);
@@ -124,13 +134,12 @@ public class MapService {
                 visitedCountryCount,
                 visitedCountries.size(),
                 visitedCountries,
-                Collections.emptyList(), // 도시 ID 리스트는 필요 시 추가
+                Collections.emptyList(),
                 user.getProfileImg(),
                 user.getNickname()
         );
     }
 
-    // 도시 및 국가 검색
     public List<MapResponseDto.searchDto> searchCitiesCountry(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return new ArrayList<>();
@@ -155,7 +164,6 @@ public class MapService {
         return results;
     }
 
-    // 마커 반환
     public List<MapResponseDto.getMarkerResponse> getMarkers(String token) {
         Long userId = jwtUtil.getUserIdFromToken(token);
         List<Map> maps = mapRepository.findByUserId(userId);
@@ -163,7 +171,7 @@ public class MapService {
         return maps.stream()
                 .map(map -> MapConverter.toMarkerResponseDto(
                         map,
-                        "", // 마커 이미지 URL 추가 필요 시 수정
+                        "",
                         map.getCity().getCountry().getName(),
                         map.getCity().getName()
                 ))
