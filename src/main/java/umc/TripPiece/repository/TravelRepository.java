@@ -2,6 +2,9 @@ package umc.TripPiece.repository;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.enums.TravelStatus;
 
@@ -17,4 +20,9 @@ public interface TravelRepository extends JpaRepository<Travel, Long> {
 
     List<Travel> findByCityIdInAndTravelOpenTrueOrderByCreatedAtDesc(List<Long> cityIds);
     List<Travel> findByCityIdInAndTravelOpenTrueOrderByCreatedAtAsc(List<Long> cityIds);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Travel t SET t.status = 'COMPLETED' WHERE t.endDate < CURRENT_DATE AND t.status != 'EXPIRED'")
+    void updateCompletedStatuses();
 }
