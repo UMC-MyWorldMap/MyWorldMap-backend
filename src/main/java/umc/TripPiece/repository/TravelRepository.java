@@ -23,6 +23,6 @@ public interface TravelRepository extends JpaRepository<Travel, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Travel t SET t.status = 'COMPLETED' WHERE t.endDate < CURRENT_DATE AND t.status != 'ONGOING'")
+    @Query("UPDATE Travel t SET t.status = 'COMPLETED' WHERE t.endDate < CURRENT_DATE AND t.status != 'COMPLETED'")
     void updateCompletedStatuses();
 }
