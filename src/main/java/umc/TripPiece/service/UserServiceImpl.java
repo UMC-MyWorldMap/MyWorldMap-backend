@@ -15,11 +15,13 @@ import umc.TripPiece.converter.UserConverter;
 import umc.TripPiece.domain.Travel;
 import umc.TripPiece.domain.User;
 import umc.TripPiece.domain.Uuid;
+import umc.TripPiece.domain.enums.Category;
 import umc.TripPiece.domain.enums.UserMethod;
 import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.TravelRepository;
 import umc.TripPiece.repository.UserRepository;
 import umc.TripPiece.repository.UuidRepository;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.web.dto.request.UserRequestDto;
 import umc.TripPiece.web.dto.response.UserResponseDto;
 
@@ -70,7 +72,7 @@ public class UserServiceImpl implements UserService{
         if(profileImg == null) {
             profileImgUrl = null;
         } else {
-            profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+            profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
         }
         newUser.setProfileImg(profileImgUrl);
 
@@ -87,7 +89,7 @@ public class UserServiceImpl implements UserService{
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
-        String profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+        String profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
 
         // providerId 중복 확인
         userRepository.findByProviderId(request.getProviderId()).ifPresent(user -> {
@@ -196,7 +198,9 @@ public class UserServiceImpl implements UserService{
     /* 로그아웃 */
     @Override
     @Transactional
-    public void logout(Long userId) {
+    public void logout() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         User user = userRepository.findById(userId).orElseThrow(() ->
             new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
@@ -208,7 +212,9 @@ public class UserServiceImpl implements UserService{
     /* 회원탈퇴 */
     @Override
     @Transactional
-    public void withdrawal(Long userId) {
+    public void withdrawal() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         // 유저 정보 조회
         User user = userRepository.findById(userId).orElseThrow(() ->
             new UserHandler(ErrorStatus.NOT_FOUND_USER)
@@ -242,7 +248,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Transactional
-    public User update(UserRequestDto.UpdateDto request, String token, MultipartFile profileImg) {
+    public User update(UserRequestDto.UpdateDto request, MultipartFile profileImg) {
         final long MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 
         // 프로필 이미지 일련번호 생성
@@ -250,7 +256,8 @@ public class UserServiceImpl implements UserService{
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
                 .uuid(uuid).build());
 
-        Long userId = jwtUtil.getUserIdFromToken(token);
+        Long userId = SecurityUtils.getCurrentUserId();
+
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );
@@ -263,7 +270,7 @@ public class UserServiceImpl implements UserService{
                 throw new UserHandler(ErrorStatus.PAYLOAD_TOO_LARGE);
             }
             try {
-                profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg);
+                profileImgUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), profileImg, Category.PICTURE);
             } catch (Exception e) {
                 throw new UserHandler(ErrorStatus.INVALID_PROFILE_IMAGE);
             }
@@ -290,8 +297,9 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserResponseDto.ProfileDto getProfile(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public UserResponseDto.ProfileDto getProfile() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         User user = userRepository.findById(userId).orElseThrow(() ->
             new UserHandler(ErrorStatus.NOT_FOUND_USER)
         );

@@ -5,16 +5,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import umc.TripPiece.apiPayload.code.status.ErrorStatus;
+import umc.TripPiece.apiPayload.exception.handler.BadRequestHandler;
+import umc.TripPiece.apiPayload.exception.handler.NotFoundHandler;
 import umc.TripPiece.aws.s3.AmazonS3Manager;
 import umc.TripPiece.converter.TripPieceConverter;
 import umc.TripPiece.domain.*;
 import umc.TripPiece.domain.enums.Category;
-import umc.TripPiece.domain.jwt.JWTUtil;
 import umc.TripPiece.repository.EmojiRepository;
 import umc.TripPiece.repository.PictureRepository;
 import umc.TripPiece.repository.TripPieceRepository;
 import umc.TripPiece.repository.UuidRepository;
 import umc.TripPiece.repository.VideoRepository;
+import umc.TripPiece.security.SecurityUtils;
 import umc.TripPiece.web.dto.request.TripPieceRequestDto;
 import umc.TripPiece.web.dto.response.TripPieceResponseDto;
 
@@ -33,11 +36,10 @@ public class TripPieceService {
     private final VideoRepository videoRepository;
     private final UuidRepository uuidRepository;
     private final AmazonS3Manager s3Manager;
-    private final JWTUtil jwtUtil;
 
     @Transactional
-    public List<TripPieceResponseDto.TripPieceListDto> getTripPieceList(String token, String sort) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TripPieceResponseDto.TripPieceListDto> getTripPieceList(String sort) {
+        Long userId = SecurityUtils.getCurrentUserId();
 
         // 정렬 기준에 따라 데이터를 조회
         List<TripPiece> tripPieces = "earliest".equalsIgnoreCase(sort)
@@ -96,8 +98,8 @@ public class TripPieceService {
     }
 
     @Transactional
-    public List<TripPieceResponseDto.TripPieceListDto> getMemoList(String token, String sort) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TripPieceResponseDto.TripPieceListDto> getMemoList(String sort) {
+        Long userId = SecurityUtils.getCurrentUserId();
 
         // 정렬 기준에 따라 데이터를 조회
         List<TripPiece> tripPieces = "earliest".equalsIgnoreCase(sort)
@@ -138,8 +140,8 @@ public class TripPieceService {
     }
 
     @Transactional
-    public List<TripPieceResponseDto.TripPieceListDto> getPictureList(String token, String sort) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TripPieceResponseDto.TripPieceListDto> getPictureList(String sort) {
+        Long userId = SecurityUtils.getCurrentUserId();
 
         // 정렬 기준에 따라 데이터를 조회
         List<TripPiece> tripPieces = "earliest".equalsIgnoreCase(sort)
@@ -174,8 +176,8 @@ public class TripPieceService {
     }
 
     @Transactional
-    public List<TripPieceResponseDto.TripPieceListDto> getVideoList(String token, String sort) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
+    public List<TripPieceResponseDto.TripPieceListDto> getVideoList(String sort) {
+        Long userId = SecurityUtils.getCurrentUserId();
 
         // 정렬 기준에 따라 데이터를 조회
         List<TripPiece> tripPieces = "earliest".equalsIgnoreCase(sort)
@@ -261,7 +263,9 @@ public class TripPieceService {
         videoRepository.deleteAll(videos);
 
         // 여행 조각 삭제
-        TripPiece tripPiece = tripPieceRepository.getById(id);
+        TripPiece tripPiece = tripPieceRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRIPPIECE));
+
         tripPieceRepository.delete(tripPiece);
     }
 
@@ -269,9 +273,10 @@ public class TripPieceService {
     @Transactional
     public Long memoUpdate(Long id, TripPieceRequestDto.update request) {
         TripPiece tripPiece = tripPieceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("TripPiece not found"));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRIPPIECE));
 
-        if(tripPiece.getCategory() != Category.MEMO) throw new IllegalArgumentException("Invalid category");
+        if(tripPiece.getCategory() != Category.MEMO)
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRIPPIECE_CATEGORY);
 
         tripPiece.setDescription(request.getDescription());
 
@@ -281,11 +286,12 @@ public class TripPieceService {
     @Transactional
     public Long pictureUpdate(Long id, TripPieceRequestDto.update request, List<MultipartFile> files) {
         TripPiece tripPiece = tripPieceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("TripPiece not found"));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRIPPIECE));
 
         // 원래 여행조각의 타입이 PICTURE 또는 SELFIE 인지 검사
         if (tripPiece.getCategory() != Category.PICTURE
-            && tripPiece.getCategory() != Category.SELFIE) throw new IllegalArgumentException("Invalid category");
+            && tripPiece.getCategory() != Category.SELFIE)
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRIPPIECE_CATEGORY);
 
         // 기존에 저장되어있던  사진들은 모두 삭제
         List<Picture> pictures = pictureRepository.findByTripPieceId(id);
@@ -303,7 +309,7 @@ public class TripPieceService {
             uuids.add(savedUuid);
         }
 
-        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), files);
+        List<String> pictureUrls = s3Manager.saveFiles(s3Manager.generateTripPieceKeyNames(uuids), files, Category.PICTURE);
         List<Picture> newPictures = new ArrayList<>();
 
         for(int i = 0; i < pictureNum; i++) {
@@ -322,11 +328,12 @@ public class TripPieceService {
     @Transactional
     public Long videoUpdate(Long id, TripPieceRequestDto.update request, MultipartFile file) {
         TripPiece tripPiece = tripPieceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("TripPiece not found"));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRIPPIECE));
 
         // 원래 여행조각의 타입이 VIDEO 또는 WHERE 인지 검사
         if (tripPiece.getCategory() != Category.VIDEO
-            && tripPiece.getCategory() != Category.WHERE) throw new IllegalArgumentException("Invalid category");
+            && tripPiece.getCategory() != Category.WHERE)
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRIPPIECE_CATEGORY);
 
         // 기존에 저장되어있던 비디오들은 모두 삭제
         List<Video> videos = videoRepository.findByTripPieceId(id);
@@ -339,7 +346,7 @@ public class TripPieceService {
         Uuid savedUuid = uuidRepository.save(Uuid.builder()
             .uuid(uuid).build());
 
-        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), file);
+        String videoUrl = s3Manager.uploadFile(s3Manager.generateTripPieceKeyName(savedUuid), file, Category.VIDEO);
 
         Video newVideo = TripPieceConverter.toTripPieceVideo(videoUrl, tripPiece);
 
@@ -355,9 +362,10 @@ public class TripPieceService {
     @Transactional
     public Long emojiUpdate(Long id, TripPieceRequestDto.update request, List<String> emojis) {
         TripPiece tripPiece = tripPieceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("TripPiece not found"));
+                .orElseThrow(() -> new NotFoundHandler(ErrorStatus.NOT_FOUND_TRIPPIECE));
 
-        if (tripPiece.getCategory() != Category.EMOJI) throw new IllegalArgumentException("Invalid category");
+        if (tripPiece.getCategory() != Category.EMOJI)
+            throw new BadRequestHandler(ErrorStatus.INVALID_TRIPPIECE_CATEGORY);
 
         // 기존의 저장되어있던 이모지들은 삭제
         List<Emoji> existingEmojis = emojiRepository.findByTripPieceId(id);

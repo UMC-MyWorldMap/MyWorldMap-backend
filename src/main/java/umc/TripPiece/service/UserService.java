@@ -25,17 +25,17 @@ public interface UserService {
     User reissue(UserRequestDto.ReissueDto request);
 
     /* 로그아웃 */
-    void logout(Long userId);
+    void logout();
 
     /* 회원탈퇴 */
-    void withdrawal(Long userId);
+    void withdrawal();
 
     /* 유저 저장 */
     User save(User user);
 
     /* 유저 수정 */
-    User update(UserRequestDto.@Valid UpdateDto request, String token, MultipartFile profileImg);
+    User update(UserRequestDto.@Valid UpdateDto request, MultipartFile profileImg);
 
     /* 프로필 조회 */
-    UserResponseDto.ProfileDto getProfile(String token);
+    UserResponseDto.ProfileDto getProfile();
 }

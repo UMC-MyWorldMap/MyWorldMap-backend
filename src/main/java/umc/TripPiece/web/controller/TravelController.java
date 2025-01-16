@@ -63,109 +63,73 @@ public class TravelController {
 
     @PostMapping("/mytravels/memo/{travelId}")
     @Operation(summary = "메모 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceMemo(@RequestBody TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceMemo(
+            @RequestBody TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
-
-        if(request.getDescription().length() > 150)
-            return ApiResponse.onFailure("400", "글자수 150자 초과 입니다.", null);
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createMemo(travelId, request, tokenWithoutBearer);
+        TripPiece tripPiece = travelService.createMemo(travelId, request);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
     @PostMapping("/mytravels/emoji/{travelId}")
     @Operation(summary = "이모지 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceEmoji(@RequestBody TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token, @RequestParam(name = "emojis") List<String> emojis){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceEmoji(
+            @RequestBody TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestParam(name = "emojis") List<String> emojis){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
-
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
-        if(emojis.size() != 4)
-            return ApiResponse.onFailure("400", "이모지의 갯수는 4개여야 합니다.", null);
-
-        for(String emoji : emojis) {
-            Pattern rex = Pattern.compile("[\\x{10000}-\\x{10ffff}\ud800-\udfff]");
-            Matcher rexMatcher = rex.matcher(emoji);
-
-            if(!rexMatcher.find())
-                return ApiResponse.onFailure("400", "올바른 이모지 형식이 아닙니다.", null);
-
-        }
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createEmoji(travelId, emojis, request, tokenWithoutBearer);
+        TripPiece tripPiece = travelService.createEmoji(travelId, emojis, request);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
     @PostMapping(value = "/mytravels/picture/{travelId}", consumes = "multipart/form-data")
     @Operation(summary = "사진 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPiecePicture(@RequestPart("memo") TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token, @RequestPart("photos") List<MultipartFile> photos){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPiecePicture(
+            @RequestPart("memo") TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestPart("photos") List<MultipartFile> photos){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
+        TripPiece tripPiece = travelService.createPicture(travelId, photos, request);
 
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createPicture(travelId, photos, request, tokenWithoutBearer);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
     @PostMapping(value = "/mytravels/selfie/{travelId}", consumes = "multipart/form-data")
     @Operation(summary = "셀카 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceSelfie(@Valid @RequestPart("memo") TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token, @RequestPart("photo") MultipartFile photo){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceSelfie(
+            @Valid @RequestPart("memo") TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestPart("photo") MultipartFile photo){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
-
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createSelfie(travelId, photo, request, tokenWithoutBearer);
+        TripPiece tripPiece = travelService.createSelfie(travelId, photo, request);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
     @PostMapping(value = "/mytravels/video/{travelId}", consumes = "multipart/form-data")
     @Operation(summary = "비디오 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceVideo(@Valid @RequestPart("memo") TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token, @RequestPart("video") MultipartFile video){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceVideo(
+            @Valid @RequestPart("memo") TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestPart("video") MultipartFile video){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
-
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createVideo(travelId, video, request, tokenWithoutBearer);
+        TripPiece tripPiece = travelService.createVideo(travelId, video, request);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
     @PostMapping(value = "/mytravels/where/{travelId}", consumes = "multipart/form-data")
     @Operation(summary = "'지금 어디에 있나요?' 카테고리 기록 API", description = "특정 여행기에서의 여행조각 추가")
-    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceWhere(@Valid @RequestPart("memo") TravelRequestDto.MemoDto request, @PathVariable("travelId") Long travelId, @RequestHeader("Authorization") String token, @RequestPart("video") MultipartFile video){
+    public ApiResponse<TravelResponseDto.CreateTripPieceResultDto> createTripPieceWhere(
+            @Valid @RequestPart("memo") TravelRequestDto.MemoDto request,
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestPart("video") MultipartFile video){
 
-        Travel travel = travelRepository.findById(travelId).orElseThrow(() -> new IllegalArgumentException("travel not found"));
-        if(travel == null) return ApiResponse.onFailure("400", "존재하지 않는 여행기 입니다.", null);
-        if(travel.getStatus() == TravelStatus.COMPLETED) return ApiResponse.onFailure("400", "이미 완료된 여행기 입니다.", null);
-
-        if(request.getDescription().length() > 100)
-            return ApiResponse.onFailure("400", "글자수 100자 초과 입니다.", null);
-
-        String tokenWithoutBearer = token.substring(7);
-        TripPiece tripPiece = travelService.createWhere(travelId, video, request, tokenWithoutBearer);
+        TripPiece tripPiece = travelService.createWhere(travelId, video, request);
         return ApiResponse.onSuccess(TravelConverter.toCreateTripPieceResultDto(tripPiece));
     }
 
@@ -185,29 +149,35 @@ public class TravelController {
 
     @GetMapping("/mytravels")
     @Operation(summary = "현재 진행중인 여행기 반환 API", description = "현재 진행중인 여행기 반환")
-    public ApiResponse<TravelResponseDto.getOngoingTravelResultDto> getOngoingTravel(@RequestHeader("Authorization") String token){
-        String tokenWithoutBearer = token.substring(7);
-        TravelResponseDto.getOngoingTravelResultDto travel = travelService.getOngoingTravel(tokenWithoutBearer);
+    public ApiResponse<TravelResponseDto.getOngoingTravelResultDto> getOngoingTravel(){
+        TravelResponseDto.getOngoingTravelResultDto travel = travelService.getOngoingTravel();
         return ApiResponse.onSuccess(travel);
     }
 
     @GetMapping("/mytravels/update/{travelId}")
     @Operation(summary = "특정 여행기의 사진들을 모두 불러오는 API", description = "여행기 수정 시에 활용")
-    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> getUpdatablePictures(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> getUpdatablePictures(
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId) {
         List<TravelResponseDto.UpdatablePictureDto> response = travelService.getPictureResponses(travelId);
         return ApiResponse.onSuccess(response);
     }
 
     @GetMapping("/mytravels/thumbnail/{travelId}")
     @Operation(summary = "특정 여행기의 썸네일 사진들을 불러오는 API", description = "9개의 사진을 불러온다")
-    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> getThumbnailPictures(@PathVariable("travelId") Long travelId) {
+    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> getThumbnailPictures(
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId) {
         List<TravelResponseDto.UpdatablePictureDto> response = travelService.getThumbnailPictures(travelId);
         return ApiResponse.onSuccess(response);
     }
 
     @PostMapping("/mytravels/thumbnail/update/{travelId}")
     @Operation(summary = "특정 여행기에서 썸네일을 편집하는 API", description = "리스트의 크기는 9이며, 썸네일에 표시될 사진의 id가 index 순서대로 정렬되어 있다. id값에 -1이 입력되면 썸네일을 제거한다")
-    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> updateThumbnailPictures(@PathVariable("travelId") Long travelId, @RequestParam(name = "pictureIdList") List<Long> pictureIdList) {
+    public ApiResponse<List<TravelResponseDto.UpdatablePictureDto>> updateThumbnailPictures(
+            @ExistEntity(entityType = umc.TripPiece.domain.Travel.class)
+            @PathVariable("travelId") Long travelId,
+            @RequestParam(name = "pictureIdList") List<Long> pictureIdList) {
         List<TravelResponseDto.UpdatablePictureDto> response = travelService.updateThumbnail(travelId, pictureIdList);
         return ApiResponse.onSuccess(response);
     }
