@@ -43,7 +43,7 @@ public class UserController {
     @Operation(summary = "일반 회원가입 API", description = "일반 회원가입")
     public ApiResponse<UserResponseDto.SignUpResultDto> signUp(
             @RequestPart("info") @Valid UserRequestDto.SignUpDto request,
-            @RequestPart("profileImg") MultipartFile profileImg) {
+            @RequestPart(value = "profileImg", required = false) MultipartFile profileImg) {
         try {
             User user = userService.signUp(request, profileImg);
             return ApiResponse.onSuccess(UserConverter.toSignUpResultDto(user));
@@ -74,7 +74,7 @@ public class UserController {
             description = "소셜 로그인 플랫폼 (KAKAO 또는 APPLE)",
             required = true,
             in = ParameterIn.PATH
-    )@PathVariable("platform") String platform, @RequestPart("info") @Valid UserRequestDto.SignUpSocialDto request, @RequestPart("profileImg") MultipartFile profileImg) {
+    )@PathVariable("platform") String platform, @RequestPart("info") @Valid UserRequestDto.SignUpSocialDto request, @RequestPart(value = "profileImg", required = false) MultipartFile profileImg) {
         UserMethod method;
         try {
             method = UserMethod.valueOf(platform.toUpperCase());
