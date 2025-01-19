@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import umc.TripPiece.domain.Map;
 
 import java.util.List;
-import java.util.Optional; // 추가된 임포트
+import java.util.Optional;
 
 public interface MapRepository extends JpaRepository<Map, Long> {
 
@@ -31,6 +31,10 @@ public interface MapRepository extends JpaRepository<Map, Long> {
     // 유저 ID와 국가 코드, 도시 ID로 맵을 조회하는 메소드
     @Query("SELECT m FROM Map m WHERE m.userId = :userId AND m.countryCode = :countryCode AND m.city.id = :cityId")
     Optional<Map> findByUserIdAndCountryCodeAndCityId(Long userId, String countryCode, Long cityId);
+
+    // 유저 ID와 국가 코드, 도시 ID로 중복된 모든 맵 조회
+    @Query("SELECT m FROM Map m WHERE m.userId = :userId AND m.countryCode = :countryCode AND m.city.id = :cityId")
+    List<Map> findAllByUserIdAndCountryCodeAndCityId(Long userId, String countryCode, Long cityId);
 
     // 유저 ID와 국가 코드로 맵을 조회하는 메소드 (마커 반환을 위한 사용)
     Map findByCountryCodeAndUserId(String countryCode, Long userId);
