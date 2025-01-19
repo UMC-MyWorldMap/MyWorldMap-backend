@@ -33,7 +33,7 @@ import java.util.List;
 public class MapController {
 
     private final MapService mapService;
-    private final JWTUtil jwtUtil; // 추가: jwtUtil 객체 주입
+    private final JWTUtil jwtUtil; // JWTUtil 객체 주입
 
     @GetMapping("/{userId}")
     @Operation(summary = "유저별 맵 불러오기 API", description = "유저별 맵 리스트 반환")
@@ -61,7 +61,6 @@ public class MapController {
     public ApiResponse<List<MapResponseDto.getMarkerResponse>> getMarkers(@RequestHeader("Authorization") String token) {
         String tokenWithoutBearer = token.substring(7);
         List<MapResponseDto.getMarkerResponse> markers = mapService.getMarkers(tokenWithoutBearer);
-
         return ApiResponse.onSuccess(markers);
     }
 
@@ -90,7 +89,7 @@ public class MapController {
     @Operation(summary = "맵 색상 수정 (기존 정보 기반)", description = "맵의 색상을 수정 (userId, countryCode, cityId 기반)")
     public ApiResponse<MapResponseDto> updateMapColorWithInfo(@RequestHeader("Authorization") String token,
                                                               @RequestBody @Valid MapRequestDto requestDto) {
-        Long userId = jwtUtil.getUserIdFromToken(token.substring(7)); // Bearer 제거
+        Long userId = jwtUtil.getUserIdFromToken(token.substring(7));
         MapResponseDto updatedMap = mapService.updateMapColorWithInfo(userId, requestDto.getCountryCode(), requestDto.getCityId(), requestDto.getColor());
         return ApiResponse.onSuccess(updatedMap);
     }
@@ -99,7 +98,7 @@ public class MapController {
     @Operation(summary = "맵 삭제 (기존 정보 기반)", description = "맵을 삭제 (userId, countryCode, cityId 기반)")
     public ApiResponse<Void> deleteMapWithInfo(@RequestHeader("Authorization") String token,
                                                @RequestBody @Valid MapRequestDto requestDto) {
-        Long userId = jwtUtil.getUserIdFromToken(token.substring(7)); // Bearer 제거
+        Long userId = jwtUtil.getUserIdFromToken(token.substring(7));
         mapService.deleteMapWithInfo(userId, requestDto.getCountryCode(), requestDto.getCityId());
         return ApiResponse.onSuccess(null);
     }
@@ -107,8 +106,7 @@ public class MapController {
     @GetMapping("/visited-countries")
     @Operation(summary = "방문한 나라 누적 API", description = "사용자가 방문한 나라의 리스트와 카운트를 반환")
     public ApiResponse<MapStatsResponseDto> getVisitedCountries(@RequestHeader("Authorization") String token) {
-        String tokenWithoutBearer = token.substring(7); // Bearer 제거
-        Long userId = jwtUtil.getUserIdFromToken(tokenWithoutBearer);
+        Long userId = jwtUtil.getUserIdFromToken(token.substring(7));
         MapStatsResponseDto response = mapService.getVisitedCountriesWithProfile(userId);
         return ApiResponse.onSuccess(response);
     }

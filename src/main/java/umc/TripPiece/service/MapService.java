@@ -40,6 +40,12 @@ public class MapService {
 
     @Transactional
     public MapResponseDto createMapWithCity(MapRequestDto requestDto) {
+        mapRepository.findByUserIdAndCountryCodeAndCityId(
+                        requestDto.getUserId(), requestDto.getCountryCode(), requestDto.getCityId())
+                .ifPresent(existingMap -> {
+                    throw new IllegalArgumentException("이미 색칠된 도시입니다.");
+                });
+
         City city = cityRepository.findById(requestDto.getCityId())
                 .orElseThrow(() -> new IllegalArgumentException("City not found with id: " + requestDto.getCityId()));
 
@@ -79,10 +85,12 @@ public class MapService {
 
     @Transactional
     public void deleteMapWithInfo(Long userId, String countryCode, Long cityId) {
-        Map map = mapRepository.findByUserIdAndCountryCodeAndCityId(userId, countryCode, cityId)
-                .orElseThrow(() -> new IllegalArgumentException("Map not found with provided info."));
+        List<Map> maps = mapRepository.findAllByUserIdAndCountryCodeAndCityId(userId, countryCode, cityId);
+        if (maps.isEmpty()) {
+            throw new IllegalArgumentException("해당 정보로 등록된 맵이 없습니다.");
+        }
 
-        mapRepository.delete(map);
+        mapRepository.deleteAll(maps);
     }
 
     @Transactional
